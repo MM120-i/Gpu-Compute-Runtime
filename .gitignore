@@ -1,12 +1,12 @@
-# Rust
-/target/
-/debug/
-/release/
+ # Rust
+target/
+debug/
+release/
 
 *.rlib
 *.rmeta
 
-/Cargo.lock
+Cargo.lock
 
 /rustfmt.toml
 /clippy.toml
@@ -22,10 +22,6 @@
 .DS_Store
 
 Thumbs.db
-
-/target/
-/debug/
-/release/
 
 *.exe
 *.pdb
