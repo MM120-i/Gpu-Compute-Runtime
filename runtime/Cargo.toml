@@ -4,5 +4,5 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-ash = "0.38"
+ash = {version = "0.38", features = ["debug"]}
 gpu-allocator = "0.28.0"
