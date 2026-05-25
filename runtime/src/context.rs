@@ -58,13 +58,13 @@ impl GpuContext {
         let instance: ManuallyDrop<ash::Instance> = ManuallyDrop::new(
             unsafe {
                 entry.create_instance(&instance_create_info, None)
-            }.map_err(|e| GpuError::Vk("create_instance", e))?
+            }.map_err(|e: vk::Result| GpuError::Vk("create_instance", e))?
         );
         
         // If validation layers are available, create the debug messenger now
-        let has_validation = !layer_ptrs.is_empty();
+        let has_validation: bool = !layer_ptrs.is_empty();
         let (debug_utils_loader, debug_messenger) = if has_validation {
-            let debug_loader = debug_utils::Instance::new(&entry, &instance);
+            let debug_loader: debug_utils::Instance = debug_utils::Instance::new(&entry, &instance);
             let create_info: vk::DebugUtilsMessengerCreateInfoEXT<'_> = vk::DebugUtilsMessengerCreateInfoEXT {
                 s_type: vk::StructureType::DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
                 p_next: std::ptr::null(),
@@ -78,12 +78,13 @@ impl GpuContext {
                 p_user_data: std::ptr::null_mut(),
                 _marker: std::marker::PhantomData,
             };
-            let messenger = unsafe {
+            let messenger: vk::DebugUtilsMessengerEXT = unsafe {
                 debug_loader.create_debug_utils_messenger(&create_info, None)
-                    .map_err(|e| GpuError::Vk("create_debug_utils_messenger", e))?
+                    .map_err(|e: vk::Result| GpuError::Vk("create_debug_utils_messenger", e))?
             };
             (Some(debug_loader), Some(messenger))
-        } else {
+        } 
+        else {
             (None, None)
         };
 
@@ -174,7 +175,7 @@ impl GpuContext {
                 },
                 None
             )
-        }.map_err(|e| GpuError::Vk("create_descriptor_pool", e))?;
+        }.map_err(|e: vk::Result| GpuError::Vk("create_descriptor_pool", e))?;
 
         Ok(Self {
             entry,
@@ -193,7 +194,7 @@ impl GpuContext {
     }
 
     fn find_compute_queue_family(instance: &ash::Instance, physical_device: vk::PhysicalDevice) -> Option<u32> {
-        let families = unsafe {
+        let families: Vec<vk::QueueFamilyProperties> = unsafe {
             instance.get_physical_device_queue_family_properties(physical_device)
         };
         
@@ -205,7 +206,7 @@ impl GpuContext {
     // Prefer an external gpu (2060 super in my case), fall back to integrated graphics if needed
     fn pick_physical_device(devices: &[vk::PhysicalDevice], instance: &ash::Instance) -> Result<vk::PhysicalDevice, GpuError> {
         for &device in devices {
-            let prop = unsafe {
+            let prop: vk::PhysicalDeviceProperties = unsafe {
                 instance.get_physical_device_properties(device)
             };
 
@@ -221,18 +222,18 @@ impl GpuContext {
         Vec<*const i8>,
         Vec<*const i8>,
     ), GpuError>{
-        let layer_props = unsafe {
+        let layer_props: Vec<vk::LayerProperties> = unsafe {
             entry.enumerate_instance_layer_properties()
-                .map_err(|e| GpuError::Vk("enumerate_instance_layer_properties", e))?
+                .map_err(|e: vk::Result| GpuError::Vk("enumerate_instance_layer_properties", e))?
         };
 
-        let has_validation = layer_props.iter().any(|lp| {
-            let name = unsafe { CStr::from_ptr(lp.layer_name.as_ptr()) };
+        let has_validation: bool = layer_props.iter().any(|lp: &vk::LayerProperties| {
+            let name: &CStr = unsafe { CStr::from_ptr(lp.layer_name.as_ptr()) };
             name.to_bytes_with_nul() == b"VK_LAYER_KHRONOS_validation\0"
         });
 
-        let mut ext_ptrs = Vec::new();
-        let mut layer_ptrs = Vec::new();
+        let mut ext_ptrs: Vec<*const i8> = Vec::new();
+        let mut layer_ptrs: Vec<*const i8> = Vec::new();
 
         if has_validation {
             ext_ptrs.push(debug_utils::NAME.as_ptr());
