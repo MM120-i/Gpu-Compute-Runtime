@@ -58,39 +58,6 @@ cargo build --manifest-path runtime/Cargo.toml
 cargo test --manifest-path runtime/Cargo.toml
 ```
 
-## Phase Roadmap
-
-### Phase 1 — Rust Host Runtime (in progress)
-
-Building the Vulkan runtime layer by layer:
-
-| Component | File | Status |
-|-----------|------|--------|
-| Error types | `runtime/src/error.rs` | Done |
-| GPU context (instance, device, queues, allocator) | `runtime/src/context.rs` | Done |
-| GPU buffer (upload/download via gpu-allocator) | `runtime/src/buffer.rs` | *Working on it* |
-| Compute pipeline (SPIR-V → Vulkan pipeline) | `runtime/src/pipeline.rs` | Not started |
-| Dispatcher (command buffer recording + submit) | `runtime/src/dispatcher.rs` | Not started |
-| End-to-end test (double shader) | `runtime/tests/integration_test.rs` | Not started |
-
-### Phase 2 — C++ Shader Compiler Frontend (planned)
-
-Compile GLSL (and optionally a custom KernelScript language) to SPIR-V using `shaderc` + `spirv-opt`.
-
-### Phase 3 — Optimization Pass (planned)
-
-Hand-written compiler passes: constant folding, loop unrolling, or loop tiling.
-
-### Phase 4 — Benchmark Kernels (planned)
-
-Prefix sum, histogram, and sparse matrix-vector multiply on GPU vs CPU.
-
-### Phase 5 — Profiling Layer (planned)
-
-Vulkan timestamp queries and pipeline statistics to measure GPU time, bandwidth, and utilization.
-
-### Phase 6 — Polish & Documentation (planned)
-
 ## Design Decisions
 
 - **Vulkan over CUDA** — vendor-agnostic. Mirrors how Qualcomm/Intel/AMD compute teams target multiple GPU architectures.
