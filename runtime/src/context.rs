@@ -8,6 +8,7 @@ use gpu_allocator::vulkan::Allocator;
 use crate::error::GpuError;
 use crate::buffer::GpuBuffer;
 
+#[allow(dead_code)] // fields used once dispatcher.rs exists. For now compiler needs to shut up about unused code
 pub struct GpuContext{
     pub(crate) entry: ash::Entry,
     instance: ManuallyDrop<ash::Instance>,
@@ -269,6 +270,10 @@ impl GpuContext {
         }.map_err(|e: vk::Result| GpuError::Vk("device_wait_idle", e))
     }
 
+    pub(crate) fn device(&self) -> &ash::Device {
+        &*self.device
+    }
+
     // cleanup helpers
     pub fn create_buffer(&mut self, size: u64, usage: vk::BufferUsageFlags, location: MemoryLocation) -> Result<GpuBuffer, GpuError> {
         let buffer_info: vk::BufferCreateInfo<'_> = vk::BufferCreateInfo {
@@ -303,12 +308,8 @@ impl GpuContext {
         Ok(GpuBuffer { raw, allocation, size })
     }
 
-    pub fn destory_buffer(&mut self, buffer: GpuBuffer) {
-        unsafe {
-            self.device.destroy_buffer(buffer.raw, None);
-        }
-
-        self.allocator.free(buffer.allocation).unwrap();
+    pub fn destroy_pipeline(&mut self, pipeline: crate::pipeline::ComputePipeline) {
+        pipeline.destroy(self);
     }
 }
 

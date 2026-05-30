@@ -35,7 +35,7 @@ impl GpuBuffer {
 
     pub fn download<T: Copy + Default>(&self) -> Result<Vec<T>, GpuError>{
         let count: usize = self.size as usize / std::mem::size_of::<T>();
-        let mut result = vec![T::default(); count];
+        let mut result: Vec<T> = vec![T::default(); count];
         let ptr: std::ptr::NonNull<std::ffi::c_void> = self.allocation.mapped_ptr().ok_or(GpuError::Buffer("buffer is not host-visible"))?;
 
         unsafe {
