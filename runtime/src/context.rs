@@ -2,9 +2,11 @@ use std::ffi::{CStr, CString};
 use std::mem::ManuallyDrop;
 use ash::{vk, Entry};
 use ash::ext::debug_utils;
+use gpu_allocator::MemoryLocation;
 use gpu_allocator::vulkan::Allocator;
 
 use crate::error::GpuError;
+use crate::buffer::GpuBuffer;
 
 pub struct GpuContext{
     pub(crate) entry: ash::Entry,
@@ -268,20 +270,13 @@ impl GpuContext {
     }
 
     // cleanup helpers
-    // pub fn destory_buffer(&self, _buffer: crate::buffer::GpuBuffer){
-    //     /**
-    //      * GpuBuffer holds vk::Buffer + gpu_allocator::Allocation
-    //      * We destory them here using self.device and self.allocator
-    //      * (Gonna implement when we write buffer.rs)
-    //      */
+    pub fn create_buffer(&mut self, size: u64, usage: vk::BufferUsageFlags, location: MemoryLocation) -> Result<GpuBuffer, GpuError> {
+        todo!()
+    }
 
-    //     todo!()
-    // }
-
-    // pub fn destory_pipeline(&self, _pipeline: crate::pipeline::ComputePipeline){
-    //     // (Gonne Implement when we write pipeline.rs)
-    //     todo!()
-    // }
+    pub fn destory_buffer(&mut self, buffer: GpuBuffer) {
+        todo!()
+    }
 }
 
 impl Drop for GpuContext {

@@ -21,7 +21,6 @@ impl fmt::Display for GpuError {
     }
 }
 
-// whats this for?
 impl std::error::Error for GpuError {}
 
 impl From<gpu_allocator::AllocationError> for GpuError {
