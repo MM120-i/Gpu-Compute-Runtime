@@ -271,11 +271,44 @@ impl GpuContext {
 
     // cleanup helpers
     pub fn create_buffer(&mut self, size: u64, usage: vk::BufferUsageFlags, location: MemoryLocation) -> Result<GpuBuffer, GpuError> {
-        todo!()
+        let buffer_info: vk::BufferCreateInfo<'_> = vk::BufferCreateInfo {
+            size,
+            usage,
+            sharing_mode: vk::SharingMode::EXCLUSIVE,
+            ..Default::default()
+        };
+
+        let raw: vk::Buffer = unsafe {
+            self.device.create_buffer(&buffer_info, None).map_err(|e| GpuError::Vk("create_buffer", e))?
+        };
+
+        let requirements: vk::MemoryRequirements = unsafe {
+            self.device.get_buffer_memory_requirements(raw)
+        };
+
+        let allocation: gpu_allocator::vulkan::Allocation = self.allocator.allocate(
+            &gpu_allocator::vulkan::AllocationCreateDesc {
+                name: "GpuBuffer",
+                requirements,
+                location,
+                linear: true,
+                allocation_scheme: gpu_allocator::vulkan::AllocationScheme::GpuAllocatorManaged
+            }
+        ).map_err(GpuError::Alloc)?;
+
+        unsafe {
+            self.device.bind_buffer_memory(raw, allocation.memory(), allocation.offset()).map_err(|e| GpuError::Vk("bind_buffer_memory", e))?
+        }
+        
+        Ok(GpuBuffer { raw, allocation, size })
     }
 
     pub fn destory_buffer(&mut self, buffer: GpuBuffer) {
-        todo!()
+        unsafe {
+            self.device.destroy_buffer(buffer.raw, None);
+        }
+
+        self.allocator.free(buffer.allocation).unwrap();
     }
 }
 

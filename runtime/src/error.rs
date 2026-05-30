@@ -7,6 +7,7 @@ pub enum GpuError{
     Alloc(gpu_allocator::AllocationError),
     Io(std::io::Error),
     Shader(String),
+    Buffer(&'static str),
 }
 
 impl fmt::Display for GpuError {
@@ -17,6 +18,7 @@ impl fmt::Display for GpuError {
             GpuError::Alloc(e) => write!(f, "GPU Alloc: {}", e),
             GpuError::Io(e) => write!(f, "I/O: {}", e),
             GpuError::Shader(msg) => write!(f, "Shader: {}", msg),
+            GpuError::Buffer(msg) => write!(f, "Buffer: {}", msg),
         }
     }
 }
