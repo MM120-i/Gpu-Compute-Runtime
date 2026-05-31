@@ -7,6 +7,7 @@ use gpu_allocator::vulkan::Allocator;
 
 use crate::error::GpuError;
 use crate::buffer::GpuBuffer;
+use crate::dispatcher::Dispatcher;
 
 #[allow(dead_code)] // fields used once dispatcher.rs exists. For now compiler needs to shut up about unused code
 pub struct GpuContext{
@@ -308,8 +309,22 @@ impl GpuContext {
         Ok(GpuBuffer { raw, allocation, size })
     }
 
+    pub fn destroy_buffer(&mut self, buffer: GpuBuffer) {
+        unsafe {
+            self.device.destroy_buffer(buffer.raw, None);
+        }
+        self.allocator.free(buffer.allocation).unwrap();
+    }
+
     pub fn destroy_pipeline(&mut self, pipeline: crate::pipeline::ComputePipeline) {
         pipeline.destroy(self);
+    }
+
+    pub fn destroy_dispatcher(&mut self, dispatcher: Dispatcher) {
+        unsafe {
+            self.device().destroy_fence(dispatcher.fence, None);
+            self.device().free_command_buffers(self.command_pool, &[dispatcher.command_buffer]);
+        };
     }
 }
 
