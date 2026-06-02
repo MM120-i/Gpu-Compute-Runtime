@@ -9,21 +9,22 @@ use crate::error::GpuError;
 use crate::gpu::buffer::GpuBuffer;
 use crate::gpu::dispatcher::Dispatcher;
 
-#[allow(dead_code)] // fields used once dispatcher.rs exists. For now compiler needs to shut up about unused code
 pub struct GpuContext{
+    #[allow(dead_code)] // kept for future device querying
     pub(crate) entry: ash::Entry,
     instance: ManuallyDrop<ash::Instance>,
     device: ManuallyDrop<ash::Device>,
 
+    #[allow(dead_code)] // kept for future device querying
     pub(crate) physical_device: vk::PhysicalDevice,
     pub(crate) physical_device_properties: vk::PhysicalDeviceProperties,
     
     pub(crate) compute_queue: vk::Queue,
+    #[allow(dead_code)] // kept for creating additional queues later
     pub(crate) queue_family_index: u32,
 
     pub(crate) allocator: ManuallyDrop<Allocator>,
     pub(crate) command_pool: vk::CommandPool,
-    pub(crate) descriptor_pool: vk::DescriptorPool,
 
     debug_utils_loader: Option<debug_utils::Instance>,
     debug_messenger: Option<vk::DebugUtilsMessengerEXT>,
@@ -161,26 +162,6 @@ impl GpuContext {
             }).map_err(GpuError::Alloc)?
         );
 
-        let pool_sizes: [vk::DescriptorPoolSize; 1] = [
-            vk::DescriptorPoolSize {
-                ty: vk::DescriptorType::STORAGE_BUFFER,
-                descriptor_count: 32,
-            },
-        ];
-
-        let descriptor_pool: vk::DescriptorPool = unsafe {
-            device.create_descriptor_pool(
-                &vk::DescriptorPoolCreateInfo {
-                    flags: vk::DescriptorPoolCreateFlags::FREE_DESCRIPTOR_SET,
-                    max_sets: 32,
-                    pool_size_count: pool_sizes.len() as u32,
-                    p_pool_sizes: pool_sizes.as_ptr(),
-                    ..Default::default()
-                },
-                None
-            )
-        }.map_err(|e: vk::Result| GpuError::Vk("create_descriptor_pool", e))?;
-
         Ok(Self {
             entry,
             instance,
@@ -191,7 +172,6 @@ impl GpuContext {
             queue_family_index,
             allocator,
             command_pool,
-            descriptor_pool,
             debug_utils_loader,
             debug_messenger
         })
@@ -332,7 +312,6 @@ impl Drop for GpuContext {
     fn drop(&mut self) {
         unsafe {
             let _ = self.device.device_wait_idle();
-            self.device.destroy_descriptor_pool(self.descriptor_pool, None);
             self.device.destroy_command_pool(self.command_pool, None);
             
             ManuallyDrop::drop(&mut self.allocator);

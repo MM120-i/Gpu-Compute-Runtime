@@ -31,4 +31,5 @@ fn main() {
     
     println!("cargo:rustc-env=DOUBLE_SPV={}", spv_path.display());
     println!("cargo:rerun-if-changed=shaders/double.comp");
+    println!("cargo:rerun-if-changed=cpp/shaderc_bridge.cpp");
 }
