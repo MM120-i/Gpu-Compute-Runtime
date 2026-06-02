@@ -186,6 +186,30 @@ impl ComputePipeline {
         Ok(descriptor_set)
     }
 
+    pub fn from_glsl(ctx: &GpuContext, glsl_source: &str, entry_point: &str, bindings: &[BufferBinding]) -> Result<Self, GpuError> {
+        let spirv: Vec<u8> = crate::compiler::compile_glsl(glsl_source)?;
+        let words: &[u32] = unsafe {
+            std::slice::from_raw_parts(
+                spirv.as_ptr() as *const u32, 
+                spirv.len() / std::mem::size_of::<u32>()
+            )
+        };
+        
+        Self::new(ctx, words, entry_point, bindings)
+    }
+
+    pub fn from_glsl_with_errors(ctx: &GpuContext, glsl_source: &str, entry_point: &str, bindings: &[BufferBinding]) -> Result<Self, GpuError> {
+        let (spirv, _errors): (Vec<u8>, String) = crate::compiler::compile_glsl_with_errors(glsl_source)?;
+        let words: &[u32] = unsafe {
+            std::slice::from_raw_parts(
+                spirv.as_ptr() as *const u32, 
+                spirv.len() / std::mem::size_of::<u32>()
+            )
+        };
+        
+        Self::new(ctx, words, entry_point, bindings)
+    }
+
     pub fn raw_pipeline(&self) -> vk::Pipeline {
         self.pipeline
     }

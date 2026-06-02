@@ -6,3 +6,6 @@ edition = "2021"
 [dependencies]
 ash = {version = "0.38", features = ["debug"]}
 gpu-allocator = "0.28.0"
+
+[build-dependencies]
+cc = "1.2"
