@@ -1,4 +1,4 @@
-use runtime::dispatcher::{Dispatcher, WorkgroupCount};
+use runtime::gpu::dispatcher::{Dispatcher, WorkgroupCount};
 
 #[test]
 fn workgroup_count_1d_exact() {

@@ -2,7 +2,7 @@ use std::ffi::CString;
 use ash::vk;
 
 use crate::context::GpuContext;
-use crate::buffer::GpuBuffer;
+use crate::gpu::buffer::GpuBuffer;
 use crate::error::GpuError;
 
 pub struct BufferBinding {
@@ -187,7 +187,7 @@ impl ComputePipeline {
     }
 
     pub fn from_glsl(ctx: &GpuContext, glsl_source: &str, entry_point: &str, bindings: &[BufferBinding]) -> Result<Self, GpuError> {
-        let spirv: Vec<u8> = crate::compiler::compile_glsl(glsl_source)?;
+        let spirv: Vec<u8> = crate::shaderc::compile_glsl(glsl_source)?;
         let words: &[u32] = unsafe {
             std::slice::from_raw_parts(
                 spirv.as_ptr() as *const u32, 
@@ -199,7 +199,7 @@ impl ComputePipeline {
     }
 
     pub fn from_glsl_with_errors(ctx: &GpuContext, glsl_source: &str, entry_point: &str, bindings: &[BufferBinding]) -> Result<Self, GpuError> {
-        let (spirv, _errors): (Vec<u8>, String) = crate::compiler::compile_glsl_with_errors(glsl_source)?;
+        let (spirv, _errors): (Vec<u8>, String) = crate::shaderc::compile_glsl_with_errors(glsl_source)?;
         let words: &[u32] = unsafe {
             std::slice::from_raw_parts(
                 spirv.as_ptr() as *const u32, 

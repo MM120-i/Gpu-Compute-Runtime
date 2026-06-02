@@ -1,7 +1,7 @@
-use runtime::buffer::GpuBuffer;
 use runtime::context::GpuContext;
-use runtime::dispatcher::{Dispatcher, WorkgroupCount};
-use runtime::pipeline::{BufferBinding, ComputePipeline};
+use runtime::gpu::buffer::GpuBuffer;
+use runtime::gpu::dispatcher::{Dispatcher, WorkgroupCount};
+use runtime::gpu::pipeline::{BufferBinding, ComputePipeline};
 
 #[test]
 fn double_values_via_glsl() {

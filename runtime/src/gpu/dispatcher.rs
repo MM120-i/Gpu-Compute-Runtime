@@ -1,7 +1,7 @@
 use ash::vk;
 
 use crate::context::GpuContext;
-use crate::pipeline::ComputePipeline;
+use crate::gpu::pipeline::ComputePipeline;
 use crate::error::GpuError;
 
 pub struct Dispatcher {
