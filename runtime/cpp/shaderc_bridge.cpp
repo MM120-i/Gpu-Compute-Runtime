@@ -4,6 +4,7 @@
 #include <string>
 
 #include "preprocessor.h"
+#include "loop_unroller.h"
 
 extern "C" {
    
@@ -119,6 +120,42 @@ extern "C" {
         if(error_max > 0)
             out_error[0] = '\0';
 
-        return 0;
+        return SUCCESS;
+    }
+
+    int unroll_loops(
+        const char *source,
+        char *out_result,
+        size_t result_max,
+        char *out_error,
+        size_t error_max
+    ){
+        if(!source || !out_result || !out_error)
+            return NULL_ARGS;
+
+        auto r = unroll_glsl_loops(source);
+
+        if(r.status != SUCCESS){
+            if(!r.error.empty() && error_max > 0){
+                size_t n = r.error.length() < error_max - 1 ? r.error.length() : error_max - 1;
+                std::memcpy(out_error, r.error.c_str(), n);
+                out_error[n] = '\0';
+            }
+            else if(error_max > 0){
+                out_error[0] = '\0';
+            }
+
+            return r.status;
+        }
+
+        if(r.output.length() >= result_max)
+            return SMALL_BUFFER;
+        
+        std::memcpy(out_result, r.output.c_str(), r.output.length() + 1);
+
+        if(error_max > 0)
+            out_error[0] = '\0';
+
+        return SUCCESS;
     }
 }
