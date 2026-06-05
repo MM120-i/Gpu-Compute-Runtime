@@ -182,9 +182,7 @@ impl GpuContext {
             instance.get_physical_device_queue_family_properties(physical_device)
         };
         
-        families.iter()
-                .position(|qf: &vk::QueueFamilyProperties| qf.queue_flags.contains(vk::QueueFlags::COMPUTE))
-                .map(|i: usize| i as u32)
+        families.iter().position(|qf: &vk::QueueFamilyProperties| qf.queue_flags.contains(vk::QueueFlags::COMPUTE)).map(|i: usize| i as u32)
     }
 
     // Prefer an external gpu (2060 super in my case), fall back to integrated graphics if needed
@@ -202,10 +200,7 @@ impl GpuContext {
         devices.first().copied().ok_or(GpuError::Init("No GPUs found"))
     }
 
-    fn setup_debug(entry: &ash::Entry) -> Result<(
-        Vec<*const i8>,
-        Vec<*const i8>,
-    ), GpuError>{
+    fn setup_debug(entry: &ash::Entry) -> Result<(Vec<*const i8>, Vec<*const i8>), GpuError>{
         let layer_props: Vec<vk::LayerProperties> = unsafe {
             entry.enumerate_instance_layer_properties()
                 .map_err(|e: vk::Result| GpuError::Vk("enumerate_instance_layer_properties", e))?
@@ -229,7 +224,8 @@ impl GpuContext {
                 }.as_ptr()
             );
             println!("Vulkan validation layers enabled");
-        } else {
+        } 
+        else {
             println!("Vulkan validation layers NOT available - skipping");
         }
 
@@ -327,12 +323,7 @@ impl Drop for GpuContext {
 }
 
 // When validation layers detect problem, we r gonna call this callback
-unsafe extern "system" fn vulkan_debug_callback(
-    severity: vk::DebugUtilsMessageSeverityFlagsEXT,
-    _type: vk::DebugUtilsMessageTypeFlagsEXT,
-    data: *const vk::DebugUtilsMessengerCallbackDataEXT,
-    _user_data: *mut std::ffi::c_void,
-) -> vk::Bool32 {
+unsafe extern "system" fn vulkan_debug_callback(severity: vk::DebugUtilsMessageSeverityFlagsEXT, _type: vk::DebugUtilsMessageTypeFlagsEXT, data: *const vk::DebugUtilsMessengerCallbackDataEXT, _user_data: *mut std::ffi::c_void) -> vk::Bool32 {
     let level: &str = match severity{
         vk::DebugUtilsMessageSeverityFlagsEXT::ERROR => "ERROR",
         vk::DebugUtilsMessageSeverityFlagsEXT::WARNING => "WARNING",

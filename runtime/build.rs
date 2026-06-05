@@ -8,7 +8,10 @@ fn main() {
 
     cc::Build::new()
         .cpp(true)
+        .flag("-std:c++17")
         .file("cpp/shaderc_bridge.cpp")
+        .file("cpp/preprocessor.cpp")
+        .file("cpp/loop_unroller.cpp")
         .include(&include_dir)
         .compile("shaderc_bridge");
 
@@ -32,4 +35,8 @@ fn main() {
     println!("cargo:rustc-env=DOUBLE_SPV={}", spv_path.display());
     println!("cargo:rerun-if-changed=shaders/double.comp");
     println!("cargo:rerun-if-changed=cpp/shaderc_bridge.cpp");
+    println!("cargo:rerun-if-changed=cpp/preprocessor.cpp");
+    println!("cargo:rerun-if-changed=cpp/preprocessor.h");
+    println!("cargo:rerun-if-changed=cpp/loop_unroller.cpp");
+    println!("cargo:rerun-if-changed=cpp/loop_unroller.h");
 }

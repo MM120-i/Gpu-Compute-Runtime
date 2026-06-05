@@ -3,11 +3,7 @@
 #include <cstring>
 #include <string>
 
-enum ReturnType {
-    SUCCESS = 0,
-    NULL_ARGS = -1,
-    SMALL_BUFFER = -2,
-};
+#include "preprocessor.h"
 
 extern "C" {
    
@@ -80,5 +76,49 @@ extern "C" {
         *out_size = byte_size;
 
         return SUCCESS;
+    }
+
+    int preprocessor_shader(
+        const char *source, 
+        const char *source_path,
+        const char *include_dirs,
+        const char *defines,
+        char *out_result,
+        size_t result_max,
+        char *out_error,
+        size_t error_max
+    ){
+        if(!source || !out_result || !out_error)
+            return NULL_ARGS;
+        
+        std::string src(source);
+        std::string sp = source_path ? source_path : "";
+        std::string id = include_dirs ? include_dirs : "";
+        std::string df = defines ? defines : "";
+
+        auto r = preprocess_glsl(src, sp, id, df);
+
+        if(r.status != SUCCESS){
+            if(!r.error.empty() && error_max > 0){
+                size_t n = r.error.length() < error_max - 1 ? r.error.length() : error_max - 1;
+                std::memcpy(out_error, r.error.c_str(), n);
+                out_error[n] = '\0';
+            }
+            else if(error_max > 0){
+                out_error[0] = '\0';
+            }
+
+            return r.status;
+        }
+
+        if(r.output.length() >= result_max)
+            return SMALL_BUFFER;
+        
+        std::memcpy(out_result, r.output.c_str(), r.output.length() + 1);
+
+        if(error_max > 0)
+            out_error[0] = '\0';
+
+        return 0;
     }
 }
