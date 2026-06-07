@@ -50,9 +50,12 @@ static ConstantBound try_parse_constant_bound(const std::string& cond) {
         return {false, 0};
 
     size_t start = lt + 1;
+    bool is_less_equal = false;
 
-    if (start < cond.length() && cond[start] == '=')
+    if (start < cond.length() && cond[start] == '=') {
         start++;
+        is_less_equal = true;
+    }
 
     std::string val_str = cond.substr(start);
     auto first = val_str.find_first_not_of(" \t");
@@ -65,6 +68,9 @@ static ConstantBound try_parse_constant_bound(const std::string& cond) {
 
     try {
         int count = std::stoi(val_str);
+        
+        if (is_less_equal)
+            count++;
 
         if (count >= 1 && count <= 64)
             return {true, count};
@@ -119,8 +125,15 @@ static std::string extract_var_name(const std::string& init) {
         return "";
 
     std::string before_eq = init.substr(0, eq);
-    auto last_space = before_eq.find_last_of(" \t");
 
+    auto last_non_space = before_eq.find_last_not_of(" \t");
+
+    if (last_non_space == std::string::npos)
+        return "";
+        
+    before_eq = before_eq.substr(0, last_non_space + 1);
+
+    auto last_space = before_eq.find_last_of(" \t");
     std::string name;
 
     if (last_space != std::string::npos)
@@ -223,14 +236,14 @@ UnRollResult unroll_glsl_loops(const std::string& source) {
                 std::string body = extract_loop_body(source, i);
 
                 if (contains_break_or_continue(body)) {
-                    output += "for(" + paren_block + ")";
+                    output += "for(" + paren_block + ")" + body;
                     continue;
                 }
 
                 std::string var_name = extract_var_name(init);
 
                 if (var_name.empty()) {
-                    output += "for(" + paren_block + ")";
+                    output += "for(" + paren_block + ")" + body;
                     continue;
                 }
 
