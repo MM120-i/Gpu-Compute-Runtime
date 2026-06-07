@@ -3,8 +3,8 @@
 #include <cstring>
 #include <string>
 
-#include "preprocessor.h"
-#include "loop_unroller.h"
+#include "../preprocessor/preprocessor.h"
+#include "../unroller/loop_unroller.h"
 
 extern "C" {
    

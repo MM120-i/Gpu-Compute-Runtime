@@ -9,9 +9,9 @@ fn main() {
     cc::Build::new()
         .cpp(true)
         .flag("-std:c++17")
-        .file("cpp/shaderc_bridge.cpp")
-        .file("cpp/preprocessor.cpp")
-        .file("cpp/loop_unroller.cpp")
+        .file("../compiler/bridge/shaderc_bridge.cpp")
+        .file("../compiler/preprocessor/preprocessor.cpp")
+        .file("../compiler/unroller/loop_unroller.cpp")
         .include(&include_dir)
         .compile("shaderc_bridge");
 
@@ -23,7 +23,7 @@ fn main() {
     let spv_path: PathBuf = out_dir.join("double.spv");
     let status: std::process::ExitStatus = std::process::Command::new("glslc")
         .args(&[
-            "shaders/double.comp",
+            "../kernels/double.comp",
             "-o",
             &spv_path.to_string_lossy(),
         ])
@@ -33,10 +33,10 @@ fn main() {
     assert!(status.success(), "glslc compilation failed");
     
     println!("cargo:rustc-env=DOUBLE_SPV={}", spv_path.display());
-    println!("cargo:rerun-if-changed=shaders/double.comp");
-    println!("cargo:rerun-if-changed=cpp/shaderc_bridge.cpp");
-    println!("cargo:rerun-if-changed=cpp/preprocessor.cpp");
-    println!("cargo:rerun-if-changed=cpp/preprocessor.h");
-    println!("cargo:rerun-if-changed=cpp/loop_unroller.cpp");
-    println!("cargo:rerun-if-changed=cpp/loop_unroller.h");
+    println!("cargo:rerun-if-changed=../kernels/double.comp");
+    println!("cargo:rerun-if-changed=../compiler/bridge/shaderc_bridge.cpp");
+    println!("cargo:rerun-if-changed=../compiler/preprocessor/preprocessor.cpp");
+    println!("cargo:rerun-if-changed=../compiler/preprocessor/preprocessor.h");
+    println!("cargo:rerun-if-changed=../compiler/unroller/loop_unroller.cpp");
+    println!("cargo:rerun-if-changed=../compiler/unroller/loop_unroller.h");
 }

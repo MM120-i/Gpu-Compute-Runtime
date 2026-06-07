@@ -1,5 +1,9 @@
-.\run.bat shaders/double.comp -o output.spv
+Commands, cuz i keep forgetting:
 
-or
+1. test.bat .\test
 
-run shaders/double.comp -o output.spv
+2. run.bat .\run.bat ../kernels/double.comp -o output.spv
+
+3. run_unroll.bat .\run_unroll
+
+4. clean.bat .\clean
