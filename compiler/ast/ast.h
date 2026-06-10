@@ -5,21 +5,22 @@
 #include <memory>
 
 // forward declarations
+class Visitor;
 class Program;
-class Decl;
+struct Decl;
 class VarDecl;
 class BufferDecl;
 struct BufferMember;
 class FunctionDecl;
 
-class Stmt;
+struct Stmt;
 class BlockStmt;
 class ForStmt;
 class IfStmt;
 class ReturnStmt;
 class ExprStmt;
 
-class Expr;
+struct Expr;
 class IntLiteral;
 class FloatLiteral;
 class BoolLiteral;

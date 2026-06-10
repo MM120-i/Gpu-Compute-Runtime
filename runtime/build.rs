@@ -12,7 +12,9 @@ fn main() {
         .file("../compiler/bridge/shaderc_bridge.cpp")
         .file("../compiler/preprocessor/preprocessor.cpp")
         .file("../compiler/unroller/loop_unroller.cpp")
+        .file("../compiler/ast/glsl_lexer.cpp")
         .include(&include_dir)
+        .include("../compiler/ast")
         .compile("shaderc_bridge");
 
     println!("cargo:rustc-link-search=native={}", lib_dir);
@@ -39,4 +41,9 @@ fn main() {
     println!("cargo:rerun-if-changed=../compiler/preprocessor/preprocessor.h");
     println!("cargo:rerun-if-changed=../compiler/unroller/loop_unroller.cpp");
     println!("cargo:rerun-if-changed=../compiler/unroller/loop_unroller.h");
+    println!("cargo:rerun-if-changed=../compiler/unroller/loop_unroller.h");
+    println!("cargo:rerun-if-changed=../compiler/ast/ast.h");
+    println!("cargo:rerun-if-changed=../compiler/ast/glsl_lexer.h");
+    println!("cargo:rerun-if-changed=../compiler/ast/glsl_lexer.cpp");
+
 }
