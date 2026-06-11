@@ -39,6 +39,9 @@ void Lexer::skip_whitespace() {
             else
                 break;
         }
+        else{
+            break;
+        }
     }
 }
 
@@ -112,10 +115,6 @@ Token Lexer::make_number(SourceLoc loc){
     return {is_float ? FLOAT_LITERAL : INT_LITERAL, loc, text};
 }
 
-Token Lexer::next_token(){
-    return Token();
-}
-
 Token Lexer::peek(){
     if(!has_peeked_){
         peeked_ = next_token();
@@ -135,5 +134,145 @@ Token Lexer::consume(){
 }
 
 bool Lexer::eof() const{
-    return false;
+    return pos_ >= source_.size();
+}
+
+Token Lexer::next_token(){
+    skip_whitespace();
+
+    if(pos_ >= source_.size())
+        return {END_OF_FILE, {(int)line_, (int)column_}, {}};
+
+    SourceLoc loc{(int)line_, (int)column_};
+    token_start_ = pos_;
+    char c = source_[pos_];
+
+    if(isalpha(c) || c == '_')
+        return make_identifier_or_keyword(loc);
+    
+    if(isdigit(c))
+        return make_number(loc);
+
+    advance();
+
+    switch (c) {
+        case '(':
+            return {OPEN_PAREN, loc, {}};
+
+        case ')':
+            return {CLOSE_PAREN, loc, {}};
+
+        case '{':
+            return {OPEN_BRACE, loc, {}};
+
+        case '}':
+            return {CLOSE_BRACE, loc, {}};
+
+        case '[':
+            return {OPEN_BRACKET, loc, {}};
+            
+        case ']':
+            return {CLOSE_BRACKET, loc, {}};
+
+        case ';':
+            return {SEMICOLON, loc, {}};
+
+        case ',':
+            return {COMMA, loc, {}};
+
+        case '.':
+            return {DOT, loc, {}};
+
+        case '#':
+            return {HASH, loc, {}};
+
+        case '+':
+            if(peek_char() == '+'){
+                advance();
+                return {PLUS_PLUS, loc, {}};
+            }
+
+            if(peek_char() == '='){
+                advance();
+                return {PLUS_EQUALS, loc, {}};
+            }
+
+            return {PLUS, loc, {}};
+
+        case '-':
+            if(peek_char() == '-'){
+                advance();
+                return {MINUS_MINUS, loc, {}};
+            }
+
+            if(peek_char() == '='){
+                advance();
+                return {MINUS_EQUALS, loc, {}};
+            }
+
+            return {MINUS, loc, {}};
+
+        case '*':
+            return {STAR, loc, {}};
+
+        case '/':
+            return {SLASH, loc, {}};
+
+        case '=':
+            if(peek_char() == '='){
+                advance();
+                return {EQUALS_EQUALS, loc, {}};
+            }
+
+            return {EQUALS, loc, {}};
+
+        case '!':
+            if (peek_char() == '='){
+                advance();
+                return {NOT_EQUALS, loc, {}};
+            }
+
+            return {BANG, loc, {}};
+
+        case '<':
+            if(peek_char() == '='){
+                advance();
+                return {LESS_EQUALS, loc, {}};
+            }
+
+            return {LESS, loc, {}};
+
+        case '>':
+            if(peek_char() == '='){
+                advance();
+                return {GREATER_EQUALS, loc, {}};
+            }
+
+            return {GREATER, loc, {}};
+            
+        case '&':
+            if(peek_char() == '&'){
+                advance();
+                return {AND_AND, loc, {}};
+            }
+
+            return {AMPERSAND, loc, {}};
+
+        case '|':
+            if(peek_char() == '|'){
+                advance();
+                return {OR_OR, loc, {}};
+            }
+
+            return {PIPE, loc, {}};
+
+        case '^':
+            return {CARET, loc, {}};
+
+        case '~':
+            return {TILDE, loc, {}};
+
+        default:
+            return {UNKNOWN, loc, {}};
+    }
 }
