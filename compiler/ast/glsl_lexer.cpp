@@ -1,3 +1,4 @@
+#include <cstdio>
 #include <unordered_map>
 
 #include "glsl_lexer.h"
@@ -275,4 +276,96 @@ Token Lexer::next_token(){
         default:
             return {UNKNOWN, loc, {}};
     }
+}
+
+static const char *token_kind_name(TokenKind kind){
+    switch (kind) {
+        case END_OF_FILE:       return "END_OF_FILE";
+        case INT_LITERAL:       return "INT_LITERAL";
+        case FLOAT_LITERAL:     return "FLOAT_LITERAL";
+        case IDENTIFIER:        return "IDENTIFIER";
+        case KW_VOID:           return "KW_VOID";
+        case KW_FLOAT:          return "KW_FLOAT";
+        case KW_INT:            return "KW_INT";
+        case KW_UINT:           return "KW_UINT";
+        case KW_BOOL:           return "KW_BOOL";
+        case KW_VEC2:           return "KW_VEC2";
+        case KW_VEC3:           return "KW_VEC3";
+        case KW_VEC4:           return "KW_VEC4";
+        case KW_IF:             return "KW_IF";
+        case KW_ELSE:           return "KW_ELSE";
+        case KW_FOR:            return "KW_FOR";
+        case KW_WHILE:          return "KW_WHILE";
+        case KW_RETURN:         return "KW_RETURN";
+        case KW_LAYOUT:         return "KW_LAYOUT";
+        case KW_BUFFER:         return "KW_BUFFER";
+        case KW_IN:             return "KW_IN";
+        case KW_OUT:            return "KW_OUT";
+        case KW_TRUE:           return "KW_TRUE";
+        case KW_FALSE:          return "KW_FALSE";
+        case KW_STRUCT:         return "KW_STRUCT";
+        case KW_BREAK:          return "KW_BREAK";
+        case KW_CONTINUE:       return "KW_CONTINUE";
+        case KW_CONST:          return "KW_CONST";
+        case SEMICOLON:         return "SEMICOLON";
+        case OPEN_BRACE:        return "OPEN_BRACE";
+        case CLOSE_BRACE:       return "CLOSE_BRACE";
+        case OPEN_PAREN:        return "OPEN_PAREN";
+        case CLOSE_PAREN:       return "CLOSE_PAREN";
+        case OPEN_BRACKET:      return "OPEN_BRACKET";
+        case CLOSE_BRACKET:     return "CLOSE_BRACKET";
+        case COMMA:             return "COMMA";
+        case DOT:               return "DOT";
+        case HASH:              return "HASH";
+        case EQUALS:            return "EQUALS";
+        case PLUS_EQUALS:       return "PLUS_EQUALS";
+        case MINUS_EQUALS:      return "MINUS_EQUALS";
+        case PLUS:              return "PLUS";
+        case MINUS:             return "MINUS";
+        case STAR:              return "STAR";
+        case SLASH:             return "SLASH";
+        case PLUS_PLUS:         return "PLUS_PLUS";
+        case MINUS_MINUS:       return "MINUS_MINUS";
+        case EQUALS_EQUALS:     return "EQUALS_EQUALS";
+        case NOT_EQUALS:        return "NOT_EQUALS";
+        case LESS:              return "LESS";
+        case GREATER:           return "GREATER";
+        case LESS_EQUALS:       return "LESS_EQUALS";
+        case GREATER_EQUALS:    return "GREATER_EQUALS";
+        case AND_AND:           return "AND_AND";
+        case OR_OR:             return "OR_OR";
+        case BANG:              return "BANG";
+        case AMPERSAND:         return "AMPERSAND";
+        case PIPE:              return "PIPE";
+        case CARET:             return "CARET";
+        case TILDE:             return "TILDE";
+        default:                return "UNKNOWN";
+    }
+}
+
+extern "C" int tokenize_glsl(const char *source, char *output, int output_size){
+    if(!source || !output || output_size <= 0)
+        return LEX_NULL_ARGS;
+
+    Lexer lexer(source);
+    int written = 0;
+
+    while(written < output_size){
+        Token t = lexer.consume();
+        const char *name = token_kind_name(t.kind);
+        int needed = snprintf(output + written, output_size - written, "%s,", name);
+
+        if(needed < 0)
+            return LEX_SMALL_BUFFER;
+
+        written += needed;
+
+        if(t.kind == END_OF_FILE)
+            break;
+    }
+
+    if(written > 0)
+        output[written - 1] = '\0';
+
+    return LEX_SUCCESS;
 }

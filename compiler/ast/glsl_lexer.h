@@ -5,6 +5,12 @@
 
 #include "ast.h"
 
+namespace {
+    constexpr int LEX_SUCCESS = 0;
+    constexpr int LEX_NULL_ARGS = -1;
+    constexpr int LEX_SMALL_BUFFER = -2;
+}
+
 enum TokenKind {
     END_OF_FILE,
 

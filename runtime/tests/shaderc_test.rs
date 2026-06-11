@@ -190,3 +190,27 @@ void main() {
     
     assert!(!spirv.is_empty(), "SPIR-V output should not be empty");
 }
+
+#[test]
+fn lexer_operators() {
+    let tokens: Vec<String> = runtime::shaderc::tokenize("a + b").unwrap();
+    assert_eq!(tokens, vec!["IDENTIFIER", "PLUS", "IDENTIFIER", "END_OF_FILE"]);
+}
+
+#[test]
+fn lexer_keywords() {
+    let tokens: Vec<String> = runtime::shaderc::tokenize("void main()").unwrap();
+    assert_eq!(tokens, vec!["KW_VOID", "IDENTIFIER", "OPEN_PAREN", "CLOSE_PAREN", "END_OF_FILE"]);
+}
+
+#[test]
+fn lexer_numbers() {
+    let tokens: Vec<String> = runtime::shaderc::tokenize("42 3.14f").unwrap();
+    assert_eq!(tokens, vec!["INT_LITERAL", "FLOAT_LITERAL", "END_OF_FILE"]);
+}
+
+#[test]
+fn lexer_comparison() {
+    let tokens: Vec<String> = runtime::shaderc::tokenize("i <= 8").unwrap();
+    assert_eq!(tokens, vec!["IDENTIFIER", "LESS_EQUALS", "INT_LITERAL", "END_OF_FILE"]);
+}

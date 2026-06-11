@@ -1,9 +1,8 @@
-use std::ffi::CString;
+use std::ffi::{CString, c_char};
 
 use crate::error::GpuError;
 
 const STATUS_SUCCESS: i32 = 0;
-
 const MAX_SPIRV_SIZE: usize = 16 * 1024 * 1024;
 const MAX_ERROR_SIZE: usize = 4096;
 const MAX_PREPROCESSOR_SIZE: usize = 1 << 20;
@@ -44,6 +43,12 @@ unsafe extern "C" {
         result_max: usize,
         out_error: *mut std::ffi::c_char,
         error_max: usize,
+    ) -> i32;
+
+    unsafe fn tokenize_glsl(
+        source: *const std::ffi::c_char,
+        output: *mut std::ffi::c_char, 
+        output_size: i32,
     ) -> i32;
 }
 
@@ -189,4 +194,26 @@ pub fn unroll(source: &str) -> Result<String, GpuError> {
     }.to_string_lossy().into_owned();
 
     Ok(output)
+}
+
+pub fn tokenize(source: &str) -> Result<Vec<String>, String>{
+    let c_source: CString = CString::new(source).map_err(|_| "source contains null byte".to_string())?;
+    let mut out: Vec<u8> = vec![0u8; 4096];
+
+    unsafe {
+        let ret: i32 = tokenize_glsl(
+            c_source.as_ptr() as *const c_char,
+            out.as_mut_ptr() as *mut c_char,
+            out.len() as i32,
+        );
+
+        if ret != 0{
+            return Err(format!("tokenize failed with code {}", ret));
+        }
+    }
+
+    let end: usize = out.iter().position(|&b| b == 0).unwrap_or(out.len());
+    let s: &str = std::str::from_utf8(&out[..end]).map_err(|e: std::str::Utf8Error| e.to_string())?;
+
+    Ok(s.split(',').map(String::from).collect())
 }
