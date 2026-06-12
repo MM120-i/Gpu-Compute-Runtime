@@ -46,8 +46,13 @@ unsafe extern "C" {
     ) -> i32;
 
     unsafe fn tokenize_glsl(
-        source: *const std::ffi::c_char,
-        output: *mut std::ffi::c_char, 
+        source: *const c_char,
+        output: *mut c_char, 
+        output_size: i32,
+    ) -> i32;
+
+    unsafe fn emit_test_ast(
+        output: *mut std::ffi::c_char,
         output_size: i32,
     ) -> i32;
 }
@@ -216,4 +221,19 @@ pub fn tokenize(source: &str) -> Result<Vec<String>, String>{
     let s: &str = std::str::from_utf8(&out[..end]).map_err(|e: std::str::Utf8Error| e.to_string())?;
 
     Ok(s.split(',').map(String::from).collect())
+}
+
+pub fn emit_test() -> Result<String, String> {
+    let mut out: Vec<u8> = vec![0u8; 4096];
+
+    unsafe {
+        let ret: i32 = emit_test_ast(out.as_mut_ptr() as *mut c_char, out.len() as i32);
+
+        if ret != 0 {
+            return Err(format!("emit_test_ast failed with code {}", ret));
+        }
+    }
+
+    let end: usize = out.iter().position(|&b| b == 0).unwrap_or(out.len());
+    std::str::from_utf8(&out[..end]).map(|s: &str| s.to_string()).map_err(|e: std::str::Utf8Error| e.to_string())
 }

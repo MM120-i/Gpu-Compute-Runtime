@@ -13,6 +13,7 @@ fn main() {
         .file("../compiler/preprocessor/preprocessor.cpp")
         .file("../compiler/unroller/loop_unroller.cpp")
         .file("../compiler/ast/glsl_lexer.cpp")
+        .file("../compiler/ast/emitter.cpp")
         .include(&include_dir)
         .include("../compiler/ast")
         .compile("shaderc_bridge");
@@ -45,5 +46,6 @@ fn main() {
     println!("cargo:rerun-if-changed=../compiler/ast/ast.h");
     println!("cargo:rerun-if-changed=../compiler/ast/glsl_lexer.h");
     println!("cargo:rerun-if-changed=../compiler/ast/glsl_lexer.cpp");
-
+    println!("cargo:rerun-if-changed=../compiler/ast/emitter.h");
+    println!("cargo:rerun-if-changed=../compiler/ast/emitter.cpp");
 }

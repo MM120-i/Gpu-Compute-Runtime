@@ -5,11 +5,11 @@
 
 #include "ast.h"
 
-namespace {
-    constexpr int LEX_SUCCESS = 0;
-    constexpr int LEX_NULL_ARGS = -1;
-    constexpr int LEX_SMALL_BUFFER = -2;
-}
+enum class Error {
+    SUCCESS = 0,
+    NULL_ARGS = -1,
+    SMALL_BUFFER = -2,
+};
 
 enum TokenKind {
     END_OF_FILE,
@@ -18,7 +18,7 @@ enum TokenKind {
     FLOAT_LITERAL,
     IDENTIFIER,
 
-    KW_VOID, KW_FLOAT, KW_INT, KW_UINT, KW_BOOL,
+    KW_VOID, KW_FLOAT, KW_INT, KW_UINT, KW_BOOL, KW_DOUBLE,
     KW_VEC2, KW_VEC3, KW_VEC4,
     KW_IF, KW_ELSE, KW_FOR, KW_WHILE, KW_RETURN,
     KW_LAYOUT, KW_BUFFER, KW_IN, KW_OUT,
@@ -29,7 +29,7 @@ enum TokenKind {
     OPEN_PAREN, CLOSE_PAREN, OPEN_BRACKET, CLOSE_BRACKET,
     COMMA, DOT, HASH,
 
-    EQUALS, PLUS_EQUALS, MINUS_EQUALS,
+    EQUALS, PLUS_EQUALS, MINUS_EQUALS, STAR_EQUALS, SLASH_EQUALS,
 
     PLUS, MINUS, STAR, SLASH,
     PLUS_PLUS, MINUS_MINUS,

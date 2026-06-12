@@ -214,3 +214,9 @@ fn lexer_comparison() {
     let tokens: Vec<String> = runtime::shaderc::tokenize("i <= 8").unwrap();
     assert_eq!(tokens, vec!["IDENTIFIER", "LESS_EQUALS", "INT_LITERAL", "END_OF_FILE"]);
 }
+
+#[test]
+fn emit_var_decl(){
+    let result: String = runtime::shaderc::emit_test().unwrap();
+    assert_eq!(result, "float x = 3.14;\n");
+}

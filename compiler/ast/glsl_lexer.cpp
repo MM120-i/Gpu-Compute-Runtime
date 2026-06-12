@@ -2,6 +2,7 @@
 #include <unordered_map>
 
 #include "glsl_lexer.h"
+#include "emitter.h"
 
 Lexer::Lexer(std::string source): source_(std::move(source)) {}
 
@@ -66,7 +67,7 @@ void Lexer::skip_block_comment() {
 Token Lexer::make_identifier_or_keyword(SourceLoc loc){
     static const std::unordered_map<std::string, TokenKind> keywords = {
         {"void", KW_VOID}, {"float", KW_FLOAT}, {"int", KW_INT},
-        {"uint", KW_UINT}, {"bool", KW_BOOL},
+        {"uint", KW_UINT}, {"bool", KW_BOOL}, {"double", KW_DOUBLE},
         {"vec2", KW_VEC2}, {"vec3", KW_VEC3}, {"vec4", KW_VEC4},
         {"if", KW_IF}, {"else", KW_ELSE}, {"for", KW_FOR},
         {"while", KW_WHILE}, {"return", KW_RETURN}, 
@@ -214,9 +215,17 @@ Token Lexer::next_token(){
             return {MINUS, loc, {}};
 
         case '*':
+            if(peek_char() == '='){
+                advance();
+                return {STAR_EQUALS, loc, {}};
+            }
             return {STAR, loc, {}};
 
         case '/':
+            if(peek_char() == '='){
+                advance();
+                return {SLASH_EQUALS, loc, {}};
+            }
             return {SLASH, loc, {}};
 
         case '=':
@@ -289,6 +298,7 @@ static const char *token_kind_name(TokenKind kind){
         case KW_INT:            return "KW_INT";
         case KW_UINT:           return "KW_UINT";
         case KW_BOOL:           return "KW_BOOL";
+        case KW_DOUBLE:         return "KW_DOUBLE";
         case KW_VEC2:           return "KW_VEC2";
         case KW_VEC3:           return "KW_VEC3";
         case KW_VEC4:           return "KW_VEC4";
@@ -320,6 +330,8 @@ static const char *token_kind_name(TokenKind kind){
         case EQUALS:            return "EQUALS";
         case PLUS_EQUALS:       return "PLUS_EQUALS";
         case MINUS_EQUALS:      return "MINUS_EQUALS";
+        case STAR_EQUALS:       return "STAR_EQUALS";
+        case SLASH_EQUALS:      return "SLASH_EQUALS";
         case PLUS:              return "PLUS";
         case MINUS:             return "MINUS";
         case STAR:              return "STAR";
@@ -343,9 +355,11 @@ static const char *token_kind_name(TokenKind kind){
     }
 }
 
+// ========================== EXTERN C FUNCTIONS ==========================
+
 extern "C" int tokenize_glsl(const char *source, char *output, int output_size){
     if(!source || !output || output_size <= 0)
-        return LEX_NULL_ARGS;
+        return static_cast<int>(Error::NULL_ARGS);
 
     Lexer lexer(source);
     int written = 0;
@@ -356,7 +370,7 @@ extern "C" int tokenize_glsl(const char *source, char *output, int output_size){
         int needed = snprintf(output + written, output_size - written, "%s,", name);
 
         if(needed < 0)
-            return LEX_SMALL_BUFFER;
+            return static_cast<int>(Error::SMALL_BUFFER);
 
         written += needed;
 
@@ -367,5 +381,32 @@ extern "C" int tokenize_glsl(const char *source, char *output, int output_size){
     if(written > 0)
         output[written - 1] = '\0';
 
-    return LEX_SUCCESS;
+    return static_cast<int>(Error::SUCCESS);
+}
+
+extern "C" int emit_test_ast(char *output, int output_size){
+
+    if(!output || output_size <= 0)
+        return static_cast<int>(Error::NULL_ARGS);
+
+    Program prog;
+
+    auto v = std::make_unique<VarDecl>();
+
+    v->type = {TypeKind::FLOAT};
+    v->name = "x";
+    v->initializer = std::make_unique<FloatLiteral>();
+
+    static_cast<FloatLiteral *>(v->initializer.get())->value = 3.14f;
+    prog.declarations.push_back(std::move(v));
+
+    Emitter emitter;
+    std::string result = emitter.emit(prog);
+
+    if((int)result.size() >= output_size)
+        return static_cast<int>(Error::SMALL_BUFFER);
+
+    std::strncpy(output, result.c_str(), output_size);
+
+    return static_cast<int>(Error::SUCCESS);
 }

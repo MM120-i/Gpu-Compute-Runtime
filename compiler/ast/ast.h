@@ -10,6 +10,7 @@ class Program;
 struct Decl;
 class VarDecl;
 class BufferDecl;
+class LayoutDecl;
 struct BufferMember;
 class FunctionDecl;
 
@@ -19,6 +20,7 @@ class ForStmt;
 class IfStmt;
 class ReturnStmt;
 class ExprStmt;
+class DeclStmt;
 
 struct Expr;
 class IntLiteral;
@@ -37,6 +39,8 @@ enum class TypeKind {
     INT,
     UINT,
     BOOL,
+    DOUBLE,
+    VOID,
     VEC2,
     VEC3,
     VEC4,
@@ -96,25 +100,27 @@ class Visitor {
 public:
     virtual ~Visitor() = default;
 
-    virtual void visit(Program&);
-    virtual void visit(VarDecl&);
-    virtual void visit(BufferDecl&);
-    virtual void visit(FunctionDecl&);
-    virtual void visit(BlockStmt&);
-    virtual void visit(ForStmt&);
-    virtual void visit(IfStmt&);
-    virtual void visit(ReturnStmt&);
-    virtual void visit(ExprStmt&);
-    virtual void visit(IntLiteral&);
-    virtual void visit(FloatLiteral&);
-    virtual void visit(BoolLiteral&);
-    virtual void visit(Variable&);
-    virtual void visit(UnaryExpr&);
-    virtual void visit(BinaryExpr&);
-    virtual void visit(AssignExpr&);
-    virtual void visit(CallExpr&);
-    virtual void visit(MemberExpr&);
-    virtual void visit(ArrayExpr&);
+    virtual void visit(Program&) {}
+    virtual void visit(VarDecl&) {}
+    virtual void visit(BufferDecl&) {}
+    virtual void visit(LayoutDecl&) {}
+    virtual void visit(FunctionDecl&) {}
+    virtual void visit(BlockStmt&) {}
+    virtual void visit(DeclStmt&) {}
+    virtual void visit(ForStmt&) {}
+    virtual void visit(IfStmt&) {}
+    virtual void visit(ReturnStmt&) {}
+    virtual void visit(ExprStmt&) {}
+    virtual void visit(IntLiteral&) {}
+    virtual void visit(FloatLiteral&) {}
+    virtual void visit(BoolLiteral&) {}
+    virtual void visit(Variable&) {}
+    virtual void visit(UnaryExpr&) {}
+    virtual void visit(BinaryExpr&) {}
+    virtual void visit(AssignExpr&) {}
+    virtual void visit(CallExpr&) {}
+    virtual void visit(MemberExpr&) {}
+    virtual void visit(ArrayExpr&) {}
 };
 
 // ======================= Root of our AST tree =======================
@@ -138,11 +144,21 @@ public:
     }
 };
 
+class LayoutDecl : public Decl {
+public:
+    std::string qualifiers;
+    std::string storage;
+
+    void accept(Visitor &v) override {
+        v.visit(*this);
+    }
+};
+
 class BufferDecl : public Decl {
 public:
     std::string block_name;
     std::string instance_name;
-    int binding = 0;
+    std::string layout;
     std::vector<BufferMember> members;
 
     void accept(Visitor &v) override {
@@ -191,6 +207,15 @@ public:
 
     void accept(Visitor &v) override {
         v.visit(*this);
+    }
+};
+
+class DeclStmt : public Stmt {
+public:
+    std::unique_ptr<Decl> declaration;
+
+    void accept(Visitor& v) override { 
+        v.visit(*this); 
     }
 };
 
@@ -271,6 +296,7 @@ public:
 
 class AssignExpr : public Expr {
 public:
+    std::string op = "=";
     std::unique_ptr<Expr> target;
     std::unique_ptr<Expr> value;
 
