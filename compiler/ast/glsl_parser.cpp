@@ -76,9 +76,10 @@ std::unique_ptr<Program> Parser::parse(){
             consume();
 
         while (
-            peek().kind != END_OF_FILE && !match(KW_VOID) && !match(KW_FLOAT) && !match(KW_INT) &&
-            !match(KW_UINT) && !match(KW_BOOL) && !match(KW_DOUBLE) && !match(KW_LAYOUT) && 
-            !match(KW_IN) && !match(KW_OUT) && !match(KW_CONST) && !match(KW_STRUCT)
+            peek().kind != END_OF_FILE &&
+            peek().kind != KW_VOID && peek().kind != KW_FLOAT && peek().kind != KW_INT &&
+            peek().kind != KW_UINT && peek().kind != KW_BOOL && peek().kind != KW_DOUBLE && peek().kind != KW_LAYOUT &&
+            peek().kind != KW_IN && peek().kind != KW_OUT && peek().kind != KW_CONST && peek().kind != KW_STRUCT
         ){
             consume();
         }
@@ -329,8 +330,8 @@ std::unique_ptr<Stmt> Parser::parse_for(){
 
     std::unique_ptr<Stmt> init;
 
-    if(match(SEMICOLON)){
-        // do nothing, we shouldnt leave it like this
+    if(peek().kind == SEMICOLON){
+        consume();
     }
     else if(peek().kind == KW_VOID || peek().kind == KW_FLOAT || peek().kind == KW_INT || peek().kind == KW_UINT ||
             peek().kind == KW_BOOL || peek().kind == KW_DOUBLE || peek().kind == KW_VEC2 || peek().kind == KW_VEC3 ||
@@ -340,11 +341,10 @@ std::unique_ptr<Stmt> Parser::parse_for(){
         if(!error_.empty())
             return nullptr;
         
-        // whats ivd mean
         std::string iname = std::string(consume().text);
-        auto ivd = std::make_unique<VarDecl>();
-        ivd->type = it;
-        ivd->name = iname;
+        auto init_var = std::make_unique<VarDecl>();
+        init_var->type = it;
+        init_var->name = iname;
         
         if(match(OPEN_BRACKET)){
             while(peek().kind != CLOSE_BRACKET && peek().kind != END_OF_FILE)
@@ -353,11 +353,11 @@ std::unique_ptr<Stmt> Parser::parse_for(){
         }
 
         if(match(EQUALS))
-            ivd->initializer = parse_expr();
+            init_var->initializer = parse_expr();
 
         expect(SEMICOLON, "expected ';' after for-loop init decl");
         auto ds = std::make_unique<DeclStmt>();
-        ds->declaration = std::move(ivd);
+        ds->declaration = std::move(init_var);
         init = std::move(ds);
     }
     else{
@@ -462,6 +462,13 @@ std::unique_ptr<Expr> Parser::parse_logical_or(){
     return left;
 }
 
+std::unique_ptr<Expr> Parser::parse_logical_and(){
+    auto left = parse_inclusive_or();
+    while(match(AND_AND))
+        left = make_binary(BinaryOp::AND, std::move(left), parse_inclusive_or());
+    return left;
+}
+
 std::unique_ptr<Expr> Parser::parse_inclusive_or(){
     auto left = parse_xor();
 
@@ -471,11 +478,35 @@ std::unique_ptr<Expr> Parser::parse_inclusive_or(){
     return left;
 }
 
+std::unique_ptr<Expr> Parser::parse_xor(){
+    auto left = parse_and();
+
+    while(match(CARET))
+        left = make_binary(BinaryOp::OR, std::move(left), parse_and());
+
+    return left;
+}
+
 std::unique_ptr<Expr> Parser::parse_and(){
     auto left = parse_equality();
 
     while(match(AMPERSAND))
         left = make_binary(BinaryOp::AND, std::move(left), parse_equality());
+
+    return left;
+}
+
+std::unique_ptr<Expr> Parser::parse_equality(){
+    auto left = parse_relational();
+
+    while(true){
+        if(match(EQUALS_EQUALS))
+            left = make_binary(BinaryOp::EQ, std::move(left), parse_relational());
+        else if(match(NOT_EQUALS))
+            left = make_binary(BinaryOp::NE, std::move(left), parse_relational());
+        else 
+            break;
+    }
 
     return left;
 }
@@ -701,7 +732,7 @@ std::unique_ptr<Expr> Parser::clone_expr(Expr &e){
     if (auto *bl = dynamic_cast<BoolLiteral *>(&e))
         return make_bool(bl->value);
 
-    set_error("cannot close expression");
+    set_error("cannot clone expression");
     return nullptr;
 }
 
