@@ -33,7 +33,6 @@ private:
     std::unique_ptr<Stmt> parse_if();
     std::unique_ptr<Stmt> parse_return();
 
-    // expressions
     std::unique_ptr<Expr> parse_expr();
     std::unique_ptr<Expr> parse_assignment();
     std::unique_ptr<Expr> parse_logical_or();
@@ -73,5 +72,6 @@ public:
 
 extern "C" {
     char *parse_and_emit_glsl(const char *, const char**);
+    char *parse_propagate_emit_glsl(const char *, const char**);
     void free_emitted_string(char *);
 }

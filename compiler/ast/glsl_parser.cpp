@@ -10,6 +10,7 @@
 
 #include "glsl_parser.h"
 #include "emitter.h"
+#include "constant_propagation.h"
 
 Parser::Parser(Lexer &lexer) : lexer_(lexer) {}
 
@@ -114,10 +115,16 @@ std::unique_ptr<Decl> Parser::parse_declaration(){
                 depth--;
 
             if(depth > 0){
-                if(!quals.empty())
-                    quals += ' ';
+                if(t.kind == COMMA)
+                    quals += ',';
+                else if(t.kind == EQUALS)
+                    quals += '=';
+                else {
+                    if(!quals.empty())
+                        quals += ' ';
 
-                quals += std::string(t.text);
+                    quals += std::string(t.text);
+                }
             }
         }
 
@@ -698,6 +705,14 @@ std::unique_ptr<Expr> Parser::make_binary(BinaryOp op, std::unique_ptr<Expr> l, 
     return b;
 }
 
+std::unique_ptr<Expr> Parser::make_assign(std::string op, std::unique_ptr<Expr> target, std::unique_ptr<Expr> value){
+    auto a = std::make_unique<AssignExpr>();
+    a->op = op;
+    a->target = std::move(target);
+    a->value = std::move(value);
+    return a;
+}
+
 std::unique_ptr<Expr> Parser::make_call(const std::string &fn, std::vector<std::unique_ptr<Expr>> args){
     auto c = std::make_unique<CallExpr>();
     c->function = fn;
@@ -736,6 +751,19 @@ std::unique_ptr<Expr> Parser::clone_expr(Expr &e){
     return nullptr;
 }
 
+// Extract the #version line from source GLSL, returns empty string if not found
+static std::string extract_version_line(const std::string &source){
+    size_t pos = source.find("#version");
+    if(pos == std::string::npos)
+        return {};
+
+    size_t end = source.find('\n', pos);
+    if(end == std::string::npos)
+        return source.substr(pos) + "\n";
+
+    return source.substr(pos, end - pos + 1);
+}
+
 extern "C" char *parse_and_emit_glsl(const char *source, const char **error_out){
     if(!source){
         if(error_out)
@@ -743,7 +771,8 @@ extern "C" char *parse_and_emit_glsl(const char *source, const char **error_out)
         return nullptr;
     }
 
-    Lexer lexer{std::string(source)};
+    std::string src(source);
+    Lexer lexer{src};
     Parser parser{lexer};
     auto program = parser.parse();
 
@@ -754,11 +783,48 @@ extern "C" char *parse_and_emit_glsl(const char *source, const char **error_out)
     }
 
     Emitter emitter;
-    std::string result = emitter.emit(*program);
+    std::string version = extract_version_line(src);
+    std::string result = version + emitter.emit(*program);
     char *out = (char *)std::malloc(result.size() + 1);
 
     if(!out){
         std::perror("Memory allocation failed: parse_and_emit_glsl");
+        return nullptr;
+    }
+
+    std::memcpy(out, result.c_str(), result.size() + 1);
+
+    return out;
+}
+
+extern "C" char *parse_propagate_emit_glsl(const char *source, const char **error_out){
+    if(!source){
+        if(error_out)
+            *error_out = _strdup("null source");
+        return nullptr;
+    }
+
+    std::string src(source);
+    Lexer lexer{src};
+    Parser parser{lexer};
+    auto program = parser.parse();
+
+    if(!program || !parser.error().empty()){
+        if(error_out)
+            *error_out = _strdup(parser.error().c_str());
+        return nullptr;
+    }
+
+    ConstantPropagation constant_prop;
+    constant_prop.fold(*program);
+
+    Emitter emitter;
+    std::string version = extract_version_line(src);
+    std::string result = version + emitter.emit(*program);
+    char *out = (char *)std::malloc(result.size() + 1);
+
+    if(!out){
+        std::perror("Memory allocation failed: parse_propagate_emit_glsl");
         return nullptr;
     }
 

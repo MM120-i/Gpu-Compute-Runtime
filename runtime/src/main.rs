@@ -104,6 +104,19 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         source
     };
 
+    let source: String = if !args.no_ast_opt {
+        let result: String = runtime::shaderc::propagate_and_emit(&source)?;
+
+        if args.verbose {
+            eprintln!("[gcr] AST constant propagation: OK");
+        }
+
+        result
+    } 
+    else {
+        source
+    };
+
     let (spirv, warnings) = runtime::shaderc::compile_glsl_with_errors(&source)?;
 
     if args.verbose {

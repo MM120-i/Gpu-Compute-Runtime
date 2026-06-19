@@ -3,17 +3,16 @@
 
 #include "constant_propagation.h"
 
-/**
- * Entry point.
- * We only fold inside function bodies. Top level declarations
- */
+static std::optional<int> eval_int(int, int, BinaryOp);
+static std::optional<float> eval_float(float, float, BinaryOp);
+static std::optional<bool> eval_bool(bool, bool, BinaryOp);
+static bool is_zero(Expr &);
+static bool is_one(Expr &);
+
 void ConstantPropagation::fold(Program &program){
     fold_decls(program.declarations);
 }
 
-/**
- * If a declaration is a function declaration, then fold its body.
- */
 void ConstantPropagation::fold_decls(std::vector<std::unique_ptr<Decl>> &decls){
     for(auto &decl : decls)
         if(auto *fd = dynamic_cast<FunctionDecl *>(decl.get()))
@@ -61,9 +60,6 @@ void ConstantPropagation::fold_stmt(std::unique_ptr<Stmt> &stmt){
     }
 }  
 
-/**
- * fold every statement in a block
- */
 void ConstantPropagation::fold_block(BlockStmt &block){
     for(auto &stmt : block.statements)
         fold_stmt(stmt);
@@ -114,12 +110,6 @@ void ConstantPropagation::fold_expr(std::unique_ptr<Expr> &expr){
     }
 }
 
-/**
- * evaulate or simplify bin expressions
- * 
- * The order we look at is important, we check if both sizes r literals first 
- * Strongest simplification then identify patterns
- */
 void ConstantPropagation::fold_binary(std::unique_ptr<Expr> &expr, BinaryExpr *be){
     if(auto *l = dynamic_cast<IntLiteral *>(be->left.get())){
         if(auto *r = dynamic_cast<IntLiteral *>(be->right.get())){
@@ -201,7 +191,7 @@ void ConstantPropagation::fold_binary(std::unique_ptr<Expr> &expr, BinaryExpr *b
             break;
 
         case BinaryOp::MUL:
-            if(is_zero(*be->right) || is_zero(*be->right)){
+            if(is_zero(*be->right) || is_zero(*be->left)){
                 auto zero = std::make_unique<IntLiteral>();
                 zero->value = 0;
                 expr = std::move(zero);
@@ -237,9 +227,6 @@ void ConstantPropagation::fold_binary(std::unique_ptr<Expr> &expr, BinaryExpr *b
     }
 }
 
-/**
- * Fold double negation and literal negation
- */
 void ConstantPropagation::fold_unary(std::unique_ptr<Expr> &expr, UnaryExpr *ue){
     switch (ue->op){
         case UnaryOp::NEGATE:
@@ -265,12 +252,10 @@ void ConstantPropagation::fold_unary(std::unique_ptr<Expr> &expr, UnaryExpr *ue)
             break;
 
         case UnaryOp::NOT:
-            if(ue->op == UnaryOp::NOT){
-                if(auto *inner = dynamic_cast<UnaryExpr *>(ue->operand.get())){
-                    if(inner->op == UnaryOp::NOT){
-                        expr = std::move(inner->operand);
-                        return;
-                    }
+            if(auto *inner = dynamic_cast<UnaryExpr *>(ue->operand.get())){
+                if(inner->op == UnaryOp::NOT){
+                    expr = std::move(inner->operand);
+                    return;
                 }
             }
 
@@ -284,7 +269,7 @@ void ConstantPropagation::fold_unary(std::unique_ptr<Expr> &expr, UnaryExpr *ue)
     }
 }
 
-static std::optional<bool> eval_bool(int l, int r, BinaryOp op){
+static std::optional<bool> eval_bool(bool l, bool r, BinaryOp op){
     switch (op){
         case BinaryOp::AND:
             return l && r;

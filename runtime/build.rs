@@ -13,7 +13,9 @@ fn main() {
         .file("../compiler/preprocessor/preprocessor.cpp")
         .file("../compiler/unroller/loop_unroller.cpp")
         .file("../compiler/ast/glsl_lexer.cpp")
+        .file("../compiler/ast/glsl_parser.cpp")
         .file("../compiler/ast/emitter.cpp")
+        .file("../compiler/ast/constant_propagation.cpp")
         .include(&include_dir)
         .include("../compiler/ast")
         .compile("shaderc_bridge");
@@ -48,4 +50,8 @@ fn main() {
     println!("cargo:rerun-if-changed=../compiler/ast/glsl_lexer.cpp");
     println!("cargo:rerun-if-changed=../compiler/ast/emitter.h");
     println!("cargo:rerun-if-changed=../compiler/ast/emitter.cpp");
+    println!("cargo:rerun-if-changed=../compiler/ast/glsl_parser.h");
+    println!("cargo:rerun-if-changed=../compiler/ast/glsl_parser.cpp");
+    println!("cargo:rerun-if-changed=../compiler/ast/constant_propagation.h");
+    println!("cargo:rerun-if-changed=../compiler/ast/constant_propagation.cpp");
 }

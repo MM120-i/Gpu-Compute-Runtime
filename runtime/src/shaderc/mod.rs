@@ -45,6 +45,13 @@ unsafe extern "C" {
         error_max: usize,
     ) -> i32;
 
+    unsafe fn parse_propagate_emit_glsl(
+        source: *const std::ffi::c_char,
+        error_out: *mut *mut std::ffi::c_char,
+    ) -> *mut std::ffi::c_char;
+
+    unsafe fn free_emitted_string(s: *mut std::ffi::c_char);
+
     unsafe fn tokenize_glsl(
         source: *const c_char,
         output: *mut c_char, 
@@ -197,6 +204,42 @@ pub fn unroll(source: &str) -> Result<String, GpuError> {
     let output: String = unsafe {
         std::ffi::CStr::from_ptr(out_buf.as_ptr())
     }.to_string_lossy().into_owned();
+
+    Ok(output)
+}
+
+pub fn propagate_and_emit(source: &str) -> Result<String, GpuError> {
+    let c_source: CString = CString::new(source).map_err(|_| GpuError::Shader("source contains null byte".into()))?;
+    let mut error_out: *mut std::ffi::c_char = std::ptr::null_mut();
+
+    let result_ptr: *mut std::ffi::c_char = unsafe {
+        parse_propagate_emit_glsl(c_source.as_ptr(), &mut error_out)
+    };
+
+    if result_ptr.is_null() {
+        let error_msg: String = if !error_out.is_null() {
+            unsafe {
+                std::ffi::CStr::from_ptr(error_out).to_string_lossy().into_owned()
+            }
+        } 
+        else {
+            "AST propagation failed".to_string()
+        };
+
+        return Err(GpuError::Shader(error_msg));
+    }
+
+    let output: String = unsafe {
+        std::ffi::CStr::from_ptr(result_ptr).to_string_lossy().into_owned()
+    };
+
+    unsafe { 
+        free_emitted_string(result_ptr); 
+    }
+
+    if !error_out.is_null() {
+        unsafe { free_emitted_string(error_out); }
+    }
 
     Ok(output)
 }

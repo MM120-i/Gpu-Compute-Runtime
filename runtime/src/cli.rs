@@ -15,6 +15,9 @@ pub struct Cli {
     #[arg(long)]
     pub no_unroll: bool,
 
+    #[arg(long)]
+    pub no_ast_opt: bool,
+
     #[arg(short = 'I', long)]
     pub include_dirs: Vec<String>,
 
