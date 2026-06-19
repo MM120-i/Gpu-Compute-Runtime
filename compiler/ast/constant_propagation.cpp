@@ -181,13 +181,6 @@ void ConstantPropagation::fold_binary(std::unique_ptr<Expr> &expr, BinaryExpr *b
                 return;
             }
 
-            if(be->left.get() == be->right.get()){
-                auto zero = std::make_unique<IntLiteral>();
-                zero->value = 0;
-                expr = std::move(zero);
-                return;
-            }
-
             break;
 
         case BinaryOp::MUL:
@@ -216,13 +209,6 @@ void ConstantPropagation::fold_binary(std::unique_ptr<Expr> &expr, BinaryExpr *b
                 return;
             }
 
-            if(be->left.get() == be->right.get()){
-                auto one = std::make_unique<IntLiteral>();
-                one->value = 1;
-                expr = std::move(one);
-                return;
-            }
-            
             break;
     }
 }
