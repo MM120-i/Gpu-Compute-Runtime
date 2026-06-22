@@ -104,16 +104,23 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         source
     };
 
-    let source: String = if !args.no_ast_opt {
-        let result: String = runtime::shaderc::propagate_and_emit(&source)?;
+    let pass_flags: i32 = if args.no_ast_opt {
+        0
+    }
+    else{
+        runtime::shaderc::PASS_CONSTANT_PROPAGATION
+    };
+
+    let source: String = if pass_flags != 0 {
+        let result: String = runtime::shaderc::pipeline(&source, pass_flags)?;
 
         if args.verbose {
-            eprintln!("[gcr] AST constant propagation: OK");
+            eprintln!("[gcr] AST Constant propagation: OK");
         }
 
         result
-    } 
-    else {
+    }
+    else{
         source
     };
 

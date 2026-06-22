@@ -16,6 +16,7 @@ fn main() {
         .file("../compiler/ast/glsl_parser.cpp")
         .file("../compiler/ast/emitter.cpp")
         .file("../compiler/ast/constant_propagation.cpp")
+        .file("../compiler/compiler_pipeline.cpp")
         .include(&include_dir)
         .include("../compiler/ast")
         .compile("shaderc_bridge");
@@ -54,4 +55,6 @@ fn main() {
     println!("cargo:rerun-if-changed=../compiler/ast/glsl_parser.cpp");
     println!("cargo:rerun-if-changed=../compiler/ast/constant_propagation.h");
     println!("cargo:rerun-if-changed=../compiler/ast/constant_propagation.cpp");
+    println!("cargo:rerun-if-changed=../compiler/compiler_pipeline.cpp");
+    println!("cargo:rerun-if-changed=../compiler/compiler_pipeline.h");
 }

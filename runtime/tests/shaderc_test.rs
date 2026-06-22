@@ -402,3 +402,59 @@ void main() {
     let (spirv, _) = runtime::shaderc::compile_glsl_with_errors(source).expect("raw source with 5*2 should compile");
     assert!(!spirv.is_empty());
 }
+
+
+#[test]
+fn pipeline_roundtrip_no_passes() {
+    let source: &str = r#"
+#version 460
+layout(local_size_x = 64) in;
+void main() {
+    int a = 42;
+    float b = 3.14;
+}
+"#;
+    let result: String = runtime::shaderc::pipeline(source, 0)
+        .expect("pipeline with no passes should succeed");
+    assert!(result.contains("#version 460"), "version line preserved");
+    assert!(result.contains("int a = 42;") || result.contains("int a = 42;\n"),
+        "variable a should appear:\n{}", result);
+    assert!(result.contains("float b = 3.14") || result.contains("float b = 3.14;\n"),
+        "variable b should appear:\n{}", result);
+}
+
+#[test]
+fn pipeline_with_constant_propagation() {
+    let source: &str = r#"
+#version 460
+void main() { int a = 5 * 2 + 3; }
+"#;
+    let result: String = runtime::shaderc::pipeline(source, runtime::shaderc::PASS_CONSTANT_PROPAGATION)
+        .expect("pipeline with const prop should succeed");
+    assert!(result.contains("int a = 13;") || result.contains("a = 13;"),
+        "5*2+3 should fold to 13:\n{}", result);
+}
+
+#[test]
+fn pipeline_empty_source_returns_error() {
+    let result: Result<String, _> = runtime::shaderc::pipeline("", 0);
+    assert!(result.is_err(), "pipeline should return error for empty source");
+}
+
+#[test]
+fn pipeline_compiles_to_valid_spirv() {
+    let source: &str = r#"
+#version 460
+layout(local_size_x = 1) in;
+layout(binding = 0) buffer Out { float d[]; } out_buf;
+void main() {
+    uint idx = gl_GlobalInvocationID.x;
+    out_buf.d[idx] = 42.0;
+}
+"#;
+    let pipeline_result: String = runtime::shaderc::pipeline(source, runtime::shaderc::PASS_CONSTANT_PROPAGATION)
+        .expect("pipeline should succeed");
+    let (spirv, _) = runtime::shaderc::compile_glsl_with_errors(&pipeline_result)
+        .expect("pipeline output should compile to valid SPIR-V");
+    assert!(!spirv.is_empty());
+}

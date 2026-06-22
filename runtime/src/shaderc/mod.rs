@@ -1,4 +1,4 @@
-use std::ffi::{CString, c_char};
+use std::ffi::{CStr, CString, c_char};
 
 use crate::error::GpuError;
 
@@ -7,6 +7,7 @@ const MAX_SPIRV_SIZE: usize = 16 * 1024 * 1024;
 const MAX_ERROR_SIZE: usize = 4096;
 const MAX_PREPROCESSOR_SIZE: usize = 1 << 20;
 const MAX_UNROLLED_SIZE: usize = 4 << 20;
+pub const PASS_CONSTANT_PROPAGATION: i32 = 1 << 0;
 
 // Rust FFI wrapper
 unsafe extern "C" {
@@ -45,11 +46,6 @@ unsafe extern "C" {
         error_max: usize,
     ) -> i32;
 
-    unsafe fn parse_propagate_emit_glsl(
-        source: *const std::ffi::c_char,
-        error_out: *mut *mut std::ffi::c_char,
-    ) -> *mut std::ffi::c_char;
-
     unsafe fn free_emitted_string(s: *mut std::ffi::c_char);
 
     unsafe fn tokenize_glsl(
@@ -62,6 +58,11 @@ unsafe extern "C" {
         output: *mut std::ffi::c_char,
         output_size: i32,
     ) -> i32;
+
+    unsafe fn run_pipeline(
+        source: *const c_char,
+        pass_flags: i32,
+    ) -> *mut c_char;
 }
 
 fn error_from_status(ret: i32, error_buf: &[i8]) -> GpuError {
@@ -209,39 +210,7 @@ pub fn unroll(source: &str) -> Result<String, GpuError> {
 }
 
 pub fn propagate_and_emit(source: &str) -> Result<String, GpuError> {
-    let c_source: CString = CString::new(source).map_err(|_| GpuError::Shader("source contains null byte".into()))?;
-    let mut error_out: *mut std::ffi::c_char = std::ptr::null_mut();
-
-    let result_ptr: *mut std::ffi::c_char = unsafe {
-        parse_propagate_emit_glsl(c_source.as_ptr(), &mut error_out)
-    };
-
-    if result_ptr.is_null() {
-        let error_msg: String = if !error_out.is_null() {
-            unsafe {
-                std::ffi::CStr::from_ptr(error_out).to_string_lossy().into_owned()
-            }
-        } 
-        else {
-            "AST propagation failed".to_string()
-        };
-
-        return Err(GpuError::Shader(error_msg));
-    }
-
-    let output: String = unsafe {
-        std::ffi::CStr::from_ptr(result_ptr).to_string_lossy().into_owned()
-    };
-
-    unsafe { 
-        free_emitted_string(result_ptr); 
-    }
-
-    if !error_out.is_null() {
-        unsafe { free_emitted_string(error_out); }
-    }
-
-    Ok(output)
+    pipeline(source, PASS_CONSTANT_PROPAGATION)
 }
 
 pub fn tokenize(source: &str) -> Result<Vec<String>, String>{
@@ -279,4 +248,26 @@ pub fn emit_test() -> Result<String, String> {
 
     let end: usize = out.iter().position(|&b| b == 0).unwrap_or(out.len());
     std::str::from_utf8(&out[..end]).map(|s: &str| s.to_string()).map_err(|e: std::str::Utf8Error| e.to_string())
+}
+
+pub fn pipeline(source: &str, pass_flags: i32) -> Result<String, GpuError>{
+    let c_source: CString = CString::new(source).map_err(|_| GpuError::Compilation("source contains null byte".into()))?;
+    
+    let ptr: *mut c_char = unsafe {
+        run_pipeline(c_source.as_ptr(), pass_flags)
+    };
+
+    if ptr.is_null(){
+        return Err(GpuError::Compilation("pipeline returned null (parse or pass error)".into()));
+    }
+
+    let result: String = unsafe {
+        CStr::from_ptr(ptr)
+    }.to_string_lossy().into_owned();
+
+    unsafe {
+        free_emitted_string(ptr);
+    }
+
+    Ok(result)
 }
