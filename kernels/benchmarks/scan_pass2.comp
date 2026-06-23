@@ -1,0 +1,52 @@
+#version 460
+layout(local_size_x = 256) in;
+
+layout(binding = 0) buffer Partial { 
+    uint partial_sums[]; 
+};
+
+#define ITEMS_PER_THREAD 16
+
+shared uint thread_totals[256];
+
+void main(){
+    uint tid = gl_LocalInvocationIndex;
+    uint n = partial_sums.length();
+    uint start = tid * ITEMS_PER_THREAD;
+    uint local[ITEMS_PER_THREAD];
+    uint running = 0u;
+
+    for(int j = 0; j < ITEMS_PER_THREAD; j++){
+        uint index = start + j;
+
+        if(index < n){
+            running += partial_sums[index];
+            local[j] = running;
+        }
+    }
+
+    thread_totals[tid] = running;
+    barrier();
+
+    for(uint stride = 1u; stride < 256u; stride <<= 1u){
+        uint val = thread_totals[tid];
+
+        if(tid >= stride){
+            val += thread_totals[tid = stride];
+        }
+
+        barrier();
+        thread_totals[tid] = val;
+        barrier();
+    }
+
+    uint carry = (tid > 0u) ? thread_totals[tid - 1u] : 0u;
+
+    for(int j = 0; j < ITEMS_PER_THREAD; j++){
+        uint index = start + j;
+
+        if(index < n){
+            partial_sums[index] = local[j] + carry;
+        }
+    }
+}

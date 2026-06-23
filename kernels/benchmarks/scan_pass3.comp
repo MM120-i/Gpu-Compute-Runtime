@@ -1,0 +1,20 @@
+#version 460
+
+layout(local_size_x = 256) in;
+
+layout(binding = 0) buffer Output {
+    uint out_data[];
+};
+
+layout(binding = 1) buffer Partial {
+    uint partial_sums[];
+};
+
+void main(){
+    uint gid = gl_GlobalInvocationID.x;
+    uint wg = gl_WorkGroupID.x;
+
+    if(wg > 0u){
+        out_data[gid] += partial_sums[wg - 1u];
+    }
+}
