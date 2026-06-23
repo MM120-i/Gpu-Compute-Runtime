@@ -24,7 +24,7 @@ impl ComputePipeline {
             s_type: vk::StructureType::SHADER_MODULE_CREATE_INFO,
             p_next: std::ptr::null(),
             flags: vk::ShaderModuleCreateFlags::default(),
-            code_size: spirv.len() * 4, // cuz 4 bytes per u32 word
+            code_size: spirv.len() * 4, 
             p_code: spirv.as_ptr(),
             _marker: std::marker::PhantomData,
         };
@@ -187,7 +187,9 @@ impl ComputePipeline {
     }
 
     pub fn from_glsl(ctx: &GpuContext, glsl_source: &str, entry_point: &str, bindings: &[BufferBinding]) -> Result<Self, GpuError> {
-        let spirv: Vec<u8> = crate::shaderc::compile_glsl(glsl_source)?;
+        let optimized: String = crate::shaderc::pipeline(glsl_source, crate::shaderc::PASS_CONSTANT_PROPAGATION)?;
+        let spirv: Vec<u8> = crate::shaderc::compile_glsl(&optimized)?;
+
         let words: &[u32] = unsafe {
             std::slice::from_raw_parts(
                 spirv.as_ptr() as *const u32, 
@@ -199,7 +201,9 @@ impl ComputePipeline {
     }
 
     pub fn from_glsl_with_errors(ctx: &GpuContext, glsl_source: &str, entry_point: &str, bindings: &[BufferBinding]) -> Result<Self, GpuError> {
-        let (spirv, _errors): (Vec<u8>, String) = crate::shaderc::compile_glsl_with_errors(glsl_source)?;
+        let optimized: String = crate::shaderc::pipeline(glsl_source, crate::shaderc::PASS_CONSTANT_PROPAGATION)?;
+        let (spirv, _errors): (Vec<u8>, String) = crate::shaderc::compile_glsl_with_errors(&optimized)?;
+        
         let words: &[u32] = unsafe {
             std::slice::from_raw_parts(
                 spirv.as_ptr() as *const u32, 
