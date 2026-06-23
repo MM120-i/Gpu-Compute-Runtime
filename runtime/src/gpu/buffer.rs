@@ -75,4 +75,12 @@ impl GpuBuffer {
             MemoryLocation::GpuToCpu
         )
     }
+
+    pub fn input_u32(ctx: &mut GpuContext, data: &[u32]) -> Result<Self, GpuError> {
+        todo!()
+    }
+
+    pub fn output_u32(ctx: &mut GpuContext, count: usize) -> Result<Self, GpuError>{
+        todo!()
+    }
 }
