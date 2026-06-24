@@ -82,7 +82,7 @@ cargo test --manifest-path runtime/Cargo.toml
 ## Design Decisions
 
 - **Vulkan over CUDA** — vendor-agnostic. Mirrors how Qualcomm/Intel/AMD compute teams target multiple GPU architectures.
-- **Ash over Vulkano** — `ash` is a thin wrapper over the raw Vulkan API. More boilerplate but more control and closer to the C API that job postings ask about.
+- **Ash over Vulkano** — `ash` is a thin wrapper over the raw Vulkan API. More boilerplate, but more control and closer to the C API that job postings ask about.
 - **Explicit destroy over Drop** — Vulkan requires reverse-order teardown (Allocator → Device → Instance). Using `ManuallyDrop` + explicit `destroy_*` methods avoids lifetime complexity while learning.
 - **Host-visible memory first** — Phase 1 uses `CpuToGpu`/`GpuToCpu` memory for simplicity. Staging buffers for `DeviceLocal` memory come later for performance.
 - **`extern "C"` FFI bridge** — C++ compiler compiled via `cc`/`cmake-rs` in the build script, exposed to Rust via a simple C ABI. Avoids C++/Rust binding complexity.
@@ -91,7 +91,7 @@ cargo test --manifest-path runtime/Cargo.toml
 
 ## Benchmarks
 
-Current results (naive implementations), no shared memory optimizations, no Vulkan timestamp queries (host-timed). Future phases will optimize each kernel.
+Current results (naive implementations), no shared memory optimizations, no Vulkan timestamp queries (host-timed). We'll optimize each kernel later :(
 
 ### Parallel Prefix Sum (Scan)
 
@@ -111,4 +111,9 @@ Current results (naive implementations), no shared memory optimizations, no Vulk
 ```
 
 **3-pass naive scan**: workgroup-local scan → scan partial sums → add carry
-https://developer.nvidia.com/gpugems/gpugems3/part-vi-gpu-computing/chapter-39-parallel-prefix-sum-scan-cuda
+<<<<<<< HEAD
+=======
+<img width="876" height="449" alt="image" src="https://github.com/user-attachments/assets/1921428a-fef9-42a7-b6ee-0003967c6868" />
+
+> > > > > > > 0f640120c8433319d3cbd926314d4855b6ec4ac0
+> > > > > > > https://developer.nvidia.com/gpugems/gpugems3/part-vi-gpu-computing/chapter-39-parallel-prefix-sum-scan-cuda
