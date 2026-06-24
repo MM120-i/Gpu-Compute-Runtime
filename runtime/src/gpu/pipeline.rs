@@ -187,8 +187,16 @@ impl ComputePipeline {
     }
 
     pub fn from_glsl(ctx: &GpuContext, glsl_source: &str, entry_point: &str, bindings: &[BufferBinding]) -> Result<Self, GpuError> {
-        let optimized: String = crate::shaderc::pipeline(glsl_source, crate::shaderc::PASS_CONSTANT_PROPAGATION)?;
-        let spirv: Vec<u8> = crate::shaderc::compile_glsl(&optimized)?;
+        Self::from_glsl_with_flags(ctx, glsl_source, entry_point, bindings, crate::shaderc::PASS_CONSTANT_PROPAGATION)
+    }
+
+    pub fn from_glsl_no_opt(ctx: &GpuContext, glsl_source: &str, entry_point: &str, bindings: &[BufferBinding]) -> Result<Self, GpuError> {
+        Self::from_glsl_with_flags(ctx, glsl_source, entry_point, bindings, 0)
+    }
+
+    fn from_glsl_with_flags(ctx: &GpuContext, glsl_source: &str, entry_point: &str, bindings: &[BufferBinding], pass_flags: i32) -> Result<Self, GpuError> {
+        let processed: String = crate::shaderc::pipeline(glsl_source, pass_flags)?;
+        let spirv: Vec<u8> = crate::shaderc::compile_glsl(&processed)?;
 
         let words: &[u32] = unsafe {
             std::slice::from_raw_parts(
@@ -200,10 +208,10 @@ impl ComputePipeline {
         Self::new(ctx, words, entry_point, bindings)
     }
 
-    pub fn from_glsl_with_errors(ctx: &GpuContext, glsl_source: &str, entry_point: &str, bindings: &[BufferBinding]) -> Result<Self, GpuError> {
+    pub fn from_glsl_with_errors(ctx: &GpuContext, glsl_source: &str, entry_point: &str, bindings: &[BufferBinding]) -> Result<(Self, String), GpuError> {
         let optimized: String = crate::shaderc::pipeline(glsl_source, crate::shaderc::PASS_CONSTANT_PROPAGATION)?;
-        let (spirv, _errors): (Vec<u8>, String) = crate::shaderc::compile_glsl_with_errors(&optimized)?;
-        
+        let (spirv, errors): (Vec<u8>, String) = crate::shaderc::compile_glsl_with_errors(&optimized)?;
+
         let words: &[u32] = unsafe {
             std::slice::from_raw_parts(
                 spirv.as_ptr() as *const u32, 
@@ -211,7 +219,8 @@ impl ComputePipeline {
             )
         };
         
-        Self::new(ctx, words, entry_point, bindings)
+        let pipeline = Self::new(ctx, words, entry_point, bindings)?;
+        Ok((pipeline, errors))
     }
 
     pub fn raw_pipeline(&self) -> vk::Pipeline {

@@ -60,6 +60,18 @@ void CompilerPipeline::add_pass(PassKind kind){
 PipelineResult CompilerPipeline::run(const std::string &source) const {
     PipelineResult result;
 
+    if(passes_.empty()){
+        if(source.empty()){
+            result.error = "Empty source";
+            return result;
+        }
+
+        result.glsl = source;
+        result.success = true;
+        
+        return result;
+    }
+
     std::string body;
     auto version_line = extract_version_line(source, body);
 

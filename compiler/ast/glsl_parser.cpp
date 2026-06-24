@@ -80,7 +80,7 @@ std::unique_ptr<Program> Parser::parse(){
             peek().kind != END_OF_FILE &&
             peek().kind != KW_VOID && peek().kind != KW_FLOAT && peek().kind != KW_INT &&
             peek().kind != KW_UINT && peek().kind != KW_BOOL && peek().kind != KW_DOUBLE && peek().kind != KW_LAYOUT &&
-            peek().kind != KW_IN && peek().kind != KW_OUT && peek().kind != KW_CONST && peek().kind != KW_STRUCT
+            peek().kind != KW_IN && peek().kind != KW_OUT && peek().kind != KW_CONST && peek().kind != KW_SHARED && peek().kind != KW_STRUCT
         ){
             consume();
         }
@@ -144,6 +144,10 @@ std::unique_ptr<Decl> Parser::parse_declaration(){
         expect(SEMICOLON, "expected ';' after layout decl");
 
         return ld;
+    }
+
+    if(match(KW_SHARED)){
+        // shared qualifier consumed, fall through to actual type
     }
 
     Type t = parse_type();

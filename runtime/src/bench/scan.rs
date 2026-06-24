@@ -86,7 +86,7 @@ void main() {
 
 pub fn scan_cpu(data: &[u32]) -> Vec<u32> {
     let mut result: Vec<u32> = Vec::with_capacity(data.len());
-    let mut sum: u32 = 3u32;
+    let mut sum: u32 = 0u32;
 
     for &val in data {
         sum = sum.wrapping_add(val);
@@ -99,20 +99,21 @@ pub fn scan_cpu(data: &[u32]) -> Vec<u32> {
 pub fn run_scan(ctx: &mut GpuContext) -> Result<Value, GpuError> {
     let device_name: String = ctx.device_name();
 
-    let small_data: Vec<u32> = vec![1u32, 2, 3, 4];
+    let mut small_data: Vec<u32> = vec![0u32; 256];
+    small_data[..4].copy_from_slice(&[1u32, 2, 3, 4]);
     let expected: Vec<u32> = scan_cpu(&small_data);
-    let small_gpu:Vec<u32> = run_scan_gpu(ctx, &small_data)?;
-    assert_eq!(small_gpu, expected, "scan correctness failed on [1, 2, 3, 4]");
+    let small_gpu: Vec<u32> = run_scan_gpu(ctx, &small_data)?;
+    assert_eq!(small_gpu, expected, "scan correctness failed");
 
     let data: Vec<u32> = (0u32..BENCH_ELEMENTS as u32).collect();
-    let expected: Vec<u32> = scan_cpu(&data);
+    let _expected: Vec<u32> = scan_cpu(&data);
 
-    run_scan_gpu(ctx, &data);
+    let _ = run_scan_gpu(ctx, &data);
 
     let start: Instant = Instant::now();
 
-    for _ in 0..ITERATIONS{
-        run_scan_gpu(ctx, &data);
+    for _ in 0..ITERATIONS {
+        let _ = run_scan_gpu(ctx, &data);
     }
     
     let gpu_dur: std::time::Duration = start.elapsed();
@@ -165,13 +166,13 @@ fn run_scan_gpu(ctx: &mut GpuContext, data: &[u32]) -> Result<Vec<u32>, GpuError
         BufferBinding {slot: 2},
     ];
 
-    let pipeline1: ComputePipeline = ComputePipeline::from_glsl(ctx, PASS1_GLSL, "main", &bindings1)?;
+    let pipeline1: ComputePipeline = ComputePipeline::from_glsl_no_opt(ctx, PASS1_GLSL, "main", &bindings1)?;
     let desc1: DescriptorSet = pipeline1.create_descriptor_set(ctx, &[&in_buf, &out_buf, &partial_buf])?;
     let mut dispatcher1: Dispatcher = Dispatcher::new(ctx)?;
     let wg1: crate::gpu::WorkgroupCount = Dispatcher::workgroup_count_1d(n as u32, WG_SIZE);
 
     let bindings2: [BufferBinding; 1] = [BufferBinding { slot: 0 }];
-    let pipeline2: ComputePipeline = ComputePipeline::from_glsl(ctx, PASS2_GLSL, "main", &bindings2)?;
+    let pipeline2: ComputePipeline = ComputePipeline::from_glsl_no_opt(ctx, PASS2_GLSL, "main", &bindings2)?;
     let desc2: DescriptorSet = pipeline2.create_descriptor_set(ctx, &[&partial_buf])?;
     let mut dispatcher2: Dispatcher = Dispatcher::new(ctx)?;
     let wg2: crate::gpu::WorkgroupCount = Dispatcher::workgroup_count_1d(wg_count, 256);
@@ -181,7 +182,7 @@ fn run_scan_gpu(ctx: &mut GpuContext, data: &[u32]) -> Result<Vec<u32>, GpuError
         BufferBinding {slot: 1},
     ];
 
-    let pipeline3: ComputePipeline = ComputePipeline::from_glsl(ctx, PASS3_GLSL, "main", &bindings3)?;
+    let pipeline3: ComputePipeline = ComputePipeline::from_glsl_no_opt(ctx, PASS3_GLSL, "main", &bindings3)?;
     let desc3: DescriptorSet = pipeline3.create_descriptor_set(ctx, &[&out_buf, &partial_buf])?;
     let mut dispatcher3: Dispatcher = Dispatcher::new(ctx)?;
     let wg3: crate::gpu::WorkgroupCount = Dispatcher::workgroup_count_1d(n as u32, WG_SIZE);

@@ -32,7 +32,7 @@ void main(){
         uint val = thread_totals[tid];
 
         if(tid >= stride){
-            val += thread_totals[tid = stride];
+            val += thread_totals[tid - stride];
         }
 
         barrier();

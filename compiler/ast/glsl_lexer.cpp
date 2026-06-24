@@ -77,6 +77,7 @@ Token Lexer::make_identifier_or_keyword(SourceLoc loc){
         {"struct", KW_STRUCT},
         {"break", KW_BREAK},
         {"const", KW_CONST},
+        {"shared", KW_SHARED},
     };
 
     token_start_ = pos_;
@@ -317,6 +318,7 @@ static const char *token_kind_name(TokenKind kind){
         case KW_BREAK:          return "KW_BREAK";
         case KW_CONTINUE:       return "KW_CONTINUE";
         case KW_CONST:          return "KW_CONST";
+        case KW_SHARED:         return "KW_SHARED";
         case SEMICOLON:         return "SEMICOLON";
         case OPEN_BRACE:        return "OPEN_BRACE";
         case CLOSE_BRACE:       return "CLOSE_BRACE";
