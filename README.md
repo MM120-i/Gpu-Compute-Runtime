@@ -63,17 +63,14 @@ Running computation on a GPU requires either CUDA (locked to NVIDIA) or a high-l
 Verify your setup:
 
 ```bash
-vulkaninfo   # should show your GPU
+vulkaninfo   # should show ur GPU
 cargo build --manifest-path runtime/Cargo.toml
 ```
 
 ### Build & test
 
 ```bash
-# Build the runtime library
 cargo build --manifest-path runtime/Cargo.toml
-
-# Run integration tests (once implemented)
 cargo test --manifest-path runtime/Cargo.toml
 ```
 
@@ -111,9 +108,6 @@ Current results (naive implementations), no shared memory optimizations, no Vulk
 ```
 
 **3-pass naive scan**: workgroup-local scan → scan partial sums → add carry
-<<<<<<< HEAD
-=======
 <img width="876" height="449" alt="image" src="https://github.com/user-attachments/assets/1921428a-fef9-42a7-b6ee-0003967c6868" />
 
-> > > > > > > 0f640120c8433319d3cbd926314d4855b6ec4ac0
-> > > > > > > https://developer.nvidia.com/gpugems/gpugems3/part-vi-gpu-computing/chapter-39-parallel-prefix-sum-scan-cuda
+https://developer.nvidia.com/gpugems/gpugems3/part-vi-gpu-computing/chapter-39-parallel-prefix-sum-scan-cuda
