@@ -91,7 +91,7 @@ cargo test --manifest-path runtime/Cargo.toml
 
 ## Benchmarks
 
-Current results (naive implementations), no shared memory optimizations, no Vulkan timestamp queries (host-timed). Future phases will optimize each kernel.
+Current results (naive implementations), no shared memory optimizations, no Vulkan timestamp queries (host-timed). We'll optimize each kernel later :(
 
 ### Parallel Prefix Sum (Scan)
 
@@ -111,4 +111,6 @@ Current results (naive implementations), no shared memory optimizations, no Vulk
 ```
 
 **3-pass naive scan**: workgroup-local scan → scan partial sums → add carry
+<img width="876" height="449" alt="image" src="https://github.com/user-attachments/assets/1921428a-fef9-42a7-b6ee-0003967c6868" />
+
 https://developer.nvidia.com/gpugems/gpugems3/part-vi-gpu-computing/chapter-39-parallel-prefix-sum-scan-cuda
