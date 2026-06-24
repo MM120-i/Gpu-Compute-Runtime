@@ -1,4 +1,5 @@
 #version 460
+
 layout(local_size_x = 256) in;
 
 layout(binding = 0) buffer Input  { 

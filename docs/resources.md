@@ -1,3 +1,15 @@
-Parallel Scan:
+### Vulkan Guide:
 
-https://developer.nvidia.com/gpugems/gpugems3/part-vi-gpu-computing/chapter-39-parallel-prefix-sum-scan-cuda
+https://vkguide.dev/
+
+### Rust book:
+
+https://doc.rust-lang.org/stable/book/title-page.html
+
+### Cpp:
+
+https://cplusplus.com/reference/
+
+### GPU STUFF:
+
+https://developer.nvidia.com/gpugems/gpugems3/part-vi-gpu-computing
