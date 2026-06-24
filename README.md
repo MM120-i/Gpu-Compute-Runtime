@@ -82,7 +82,7 @@ cargo test --manifest-path runtime/Cargo.toml
 ## Design Decisions
 
 - **Vulkan over CUDA** — vendor-agnostic. Mirrors how Qualcomm/Intel/AMD compute teams target multiple GPU architectures.
-- **Ash over Vulkano** — `ash` is a thin wrapper over the raw Vulkan API. More boilerplate but more control and closer to the C API that job postings ask about.
+- **Ash over Vulkano** — `ash` is a thin wrapper over the raw Vulkan API. More boilerplate, but more control and closer to the C API that job postings ask about.
 - **Explicit destroy over Drop** — Vulkan requires reverse-order teardown (Allocator → Device → Instance). Using `ManuallyDrop` + explicit `destroy_*` methods avoids lifetime complexity while learning.
 - **Host-visible memory first** — Phase 1 uses `CpuToGpu`/`GpuToCpu` memory for simplicity. Staging buffers for `DeviceLocal` memory come later for performance.
 - **`extern "C"` FFI bridge** — C++ compiler compiled via `cc`/`cmake-rs` in the build script, exposed to Rust via a simple C ABI. Avoids C++/Rust binding complexity.
