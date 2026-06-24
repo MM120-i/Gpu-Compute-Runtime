@@ -21,7 +21,7 @@ unroll:
 
 clean:
 	cd $(RUNTIME) && cargo clean
-	-del /f /q $(RUNTIME)\output.spv $(RUNTIME)\unroll_test.spv $(RUNTIME)\unroll_test_no_unroll.spv 2>nul
+	-del /f /q $(RUNTIME)\output.spv $(RUNTIME)\unroll_test.spv $(RUNTIME)\unroll_test_no_unroll.spv 2 $(RUNTIME)\test.spv $(RUNTIME)\scan_pass1.spv>nul
 
 help:
 	@echo Targets:
