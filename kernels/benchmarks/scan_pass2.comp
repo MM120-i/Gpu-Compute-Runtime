@@ -32,9 +32,8 @@ void main(){
     for(uint stride = 1u; stride < 256u; stride <<= 1u){
         uint val = thread_totals[tid];
 
-        if(tid >= stride){
+        if(tid >= stride)
             val += thread_totals[tid - stride];
-        }
 
         barrier();
         thread_totals[tid] = val;
@@ -46,8 +45,7 @@ void main(){
     for(int j = 0; j < ITEMS_PER_THREAD; j++){
         uint index = start + j;
 
-        if(index < n){
+        if(index < n)
             partial_sums[index] = local[j] + carry;
-        }
     }
 }
