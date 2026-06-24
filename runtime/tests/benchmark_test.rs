@@ -21,3 +21,15 @@ fn run_scan_benchmark() {
         scan["speedup"].as_f64().unwrap(),
     );
 }
+
+#[test]
+fn run_histogram_benchmark() {
+    let mut ctx: runtime::context::GpuContext = runtime::context::GpuContext::new().expect("create GpuContext for histogram benchmark");
+    let result: serde_json::Value = runtime::bench::histogram::run_histogram(&mut ctx).expect("histogram benchmark failed");
+    let json: String = serde_json::to_string_pretty(&result).expect("serialize benchmark result");
+
+    println!("{}", json);
+
+    let hist: &serde_json::Value = &result["histogram"];
+    assert!(hist["correct"].as_bool().unwrap(), "histogram correctness check failed");
+}

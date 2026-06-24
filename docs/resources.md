@@ -13,3 +13,4 @@ https://cplusplus.com/reference/
 ### GPU STUFF:
 
 https://developer.nvidia.com/gpugems/gpugems3/part-vi-gpu-computing
+https://ajdillhoff.github.io/notes/gpu_pattern_parallel_histogram/

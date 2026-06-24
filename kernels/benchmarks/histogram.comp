@@ -20,7 +20,7 @@ void main(){
     barrier();
 
     if(gid < data.length()){
-        uint bucket = data[gid] & 256u;
+        uint bucket = data[gid] % 256u;
         atomicAdd(smem[bucket], 1u);
     }
 
