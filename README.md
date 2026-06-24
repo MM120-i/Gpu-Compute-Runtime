@@ -86,3 +86,29 @@ cargo test --manifest-path runtime/Cargo.toml
 - **Explicit destroy over Drop** — Vulkan requires reverse-order teardown (Allocator → Device → Instance). Using `ManuallyDrop` + explicit `destroy_*` methods avoids lifetime complexity while learning.
 - **Host-visible memory first** — Phase 1 uses `CpuToGpu`/`GpuToCpu` memory for simplicity. Staging buffers for `DeviceLocal` memory come later for performance.
 - **`extern "C"` FFI bridge** — C++ compiler compiled via `cc`/`cmake-rs` in the build script, exposed to Rust via a simple C ABI. Avoids C++/Rust binding complexity.
+
+---
+
+## Benchmarks
+
+Current results (naive implementations), no shared memory optimizations, no Vulkan timestamp queries (host-timed). Future phases will optimize each kernel.
+
+### Parallel Prefix Sum (Scan)
+
+```
+{
+  "scan": {
+    "bandwidth_gbps": 0.05,
+    "correct": true,
+    "cpu_ms": 7.67,
+    "device": "NVIDIA GeForce RTX 2060 SUPER",
+    "elements": 1048576,
+    "gpu_ms": 182.57,
+    "speedup": 0.04,
+    "workgroup_size": 256
+  }
+}
+```
+
+**3-pass naive scan**: workgroup-local scan → scan partial sums → add carry
+https://developer.nvidia.com/gpugems/gpugems3/part-vi-gpu-computing/chapter-39-parallel-prefix-sum-scan-cuda
