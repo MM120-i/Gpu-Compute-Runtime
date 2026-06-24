@@ -1,9 +1,17 @@
 Commands, cuz i keep forgetting:
 
-1. test.bat -> .\test
+.\make or .\make check -> cargo check
 
-2. run.bat -> .\run.bat ../kernels/double.comp -o output.spv
+.\make test -> cargo check + cargo test (all 33 tests)
 
-3. run_unroll.bat -> .\run_unroll
+.\make bench -> runs only the scan benchmark
 
-4. clean.bat -> .\clean
+.\make run -> ARGS="--no-ast-opt" cargo run -- <args>
+
+.\make clean -> cargo clean + deletes stray .spv files
+
+.\make help -> prints available targets
+
+Make run examples:
+
+.\make run ARGS="../kernels/benchmarks/scan_pass1.comp -o scan_pass1.spv --no-ast-opt"
