@@ -52,6 +52,14 @@ fn run_all_benchmarks() {
     }
 
     let json: String = serde_json::to_string_pretty(&combined).expect("serialize");
+    let path: &str = "../docs/WebPage/chart.js/public/bench_results.json";
+
+    if let Some(parent) = std::path::Path::new(path).parent() {
+        fs::create_dir_all(parent).expect("create public dir");
+    }
+
     fs::write("bench_results.json", &json).expect("write bench_results.json");
+    fs::write(path, &json).expect("write bench_results.json (dashboard)");
+    
     eprintln!("[bench] all results written to bench_results.json");
 }

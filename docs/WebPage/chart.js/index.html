@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GPU Compute Runtime - Benchmark Dashboard</title>
+    <link rel="stylesheet" href="/src/style.css" />
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23818cf8'/><text x='16' y='22' font-size='18' text-anchor='middle' fill='white'>G</text></svg>"
+    />
+    <script type="module" src="/src/main.js"></script>
+  </head>
+
+  <body>
+    <header>
+      <div class="header-left">
+        <h1>GPU Compute Runtime</h1>
+        <span class="badge">v0.1.0</span>
+      </div>
+      <div class="header-right">
+        <span class="device-label" id="device-label"></span>
+        <button
+          type="button"
+          id="theme-toggle"
+          aria-label="Toggle theme"
+          title="Toggle theme"
+        >
+          🌙
+        </button>
+      </div>
+    </header>
+
+    <main>
+      <div class="cards" id="benchmark-cards">
+        <!-- Scan Chart-->
+        <section class="card" data-bench="scan">
+          <div class="card-header">
+            <h2>Parallel Prefix Sum</h2>
+            <span class="tag tag-scan">Scan</span>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="scan-chart"></canvas>
+          </div>
+          <div class="metrics" id="scan-metrics"></div>
+        </section>
+
+        <!--Histogram Chart-->
+        <section class="card" data-bench="histogram">
+          <div class="card-header">
+            <h2>Histogram</h2>
+            <span class="tag tag-histogram">Histogram</span>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="histogram-chart"></canvas>
+          </div>
+          <div class="metrics" id="histogram-metrics"></div>
+        </section>
+
+        <!--SpMV Chart-->
+        <section class="card" data-bench="spmv">
+          <div class="card-header">
+            <h2>Sparse Matrix Vector Multiply</h2>
+            <span class="tag tag-spmv">SpMV</span>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="spmv-chart"></canvas>
+          </div>
+          <div class="metrics" id="spmv-metrics"></div>
+        </section>
+      </div>
+
+      <!--Summary Table-->
+      <section class="card summary-card">
+        <div class="card-header">
+          <h2>Summary Comparison</h2>
+        </div>
+        <div class="table-wrap">
+          <table id="summary-table">
+            <thead>
+              <tr>
+                <th>Benchmark</th>
+                <th>Elements</th>
+                <th>CPU (ms)</th>
+                <th>GPU (ms)</th>
+                <th>Speedup</th>
+                <th>Bandwidth (GB/s)</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <p>
+        Device: <span id="footer-device"></span> &middot; Data from
+        <code>bench_results.json</code>
+      </p>
+    </footer>
+  </body>
+</html>
