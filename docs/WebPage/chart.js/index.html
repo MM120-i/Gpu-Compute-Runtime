@@ -20,7 +20,6 @@
         <span class="badge">v0.1.0</span>
       </div>
       <div class="header-right">
-        <span class="device-label" id="device-label"></span>
         <button
           type="button"
           id="theme-toggle"
@@ -33,8 +32,30 @@
     </header>
 
     <main>
+      <section class="card system-card" id="system-card">
+        <div class="system-inner">
+          <div class="system-icon">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+              width="32"
+              height="32"
+            >
+              <rect x="2" y="3" width="20" height="14" rx="2" />
+              <line x1="8" y1="21" x2="16" y2="21" />
+              <line x1="12" y1="17" x2="12" y2="21" />
+            </svg>
+          </div>
+          <div class="system-body">
+            <span class="system-label">GPU</span>
+            <span class="system-value" id="gpu-name">—</span>
+          </div>
+        </div>
+      </section>
+
       <div class="cards" id="benchmark-cards">
-        <!-- Scan Chart-->
         <section class="card" data-bench="scan">
           <div class="card-header">
             <h2>Parallel Prefix Sum</h2>
@@ -46,7 +67,6 @@
           <div class="metrics" id="scan-metrics"></div>
         </section>
 
-        <!--Histogram Chart-->
         <section class="card" data-bench="histogram">
           <div class="card-header">
             <h2>Histogram</h2>
@@ -58,7 +78,6 @@
           <div class="metrics" id="histogram-metrics"></div>
         </section>
 
-        <!--SpMV Chart-->
         <section class="card" data-bench="spmv">
           <div class="card-header">
             <h2>Sparse Matrix Vector Multiply</h2>
@@ -71,7 +90,6 @@
         </section>
       </div>
 
-      <!--Summary Table-->
       <section class="card summary-card">
         <div class="card-header">
           <h2>Summary Comparison</h2>
@@ -96,10 +114,7 @@
     </main>
 
     <footer>
-      <p>
-        Device: <span id="footer-device"></span> &middot; Data from
-        <code>bench_results.json</code>
-      </p>
+      <p>Data from <code>bench_results.json</code></p>
     </footer>
   </body>
 </html>

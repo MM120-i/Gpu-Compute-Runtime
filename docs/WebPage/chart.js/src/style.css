@@ -132,6 +132,10 @@ main {
   padding: 0 2rem;
 }
 
+.system-card {
+  margin-bottom: 2rem;
+}
+
 .cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
@@ -322,6 +326,49 @@ footer code {
   .card {
     padding: 1rem;
   }
+  /* ───── System Info Card ───── */
+  .system-card {
+    margin-bottom: 2rem;
+  }
+
+  .system-inner {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .system-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    background: rgba(from var(--gpu-color) r g b / 0.12);
+    color: var(--gpu-color);
+    flex-shrink: 0;
+  }
+
+  .system-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+  }
+
+  .system-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+  }
+
+  .system-value {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text);
+  }
+
   .chart-wrap {
     height: 180px;
   }

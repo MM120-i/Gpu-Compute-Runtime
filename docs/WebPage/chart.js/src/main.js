@@ -88,9 +88,9 @@ const populateTable = (data) => {
     .join("");
 };
 
-const setDevice = (data) => {
-  document.getElementById("device-label").textContent = data.device;
-  document.getElementById("footer-device").textContent = data.device;
+const populateSystemInfo = (data) => {
+  const gpu = data.scan?.device || data.histogram?.device || "Unknown GPU";
+  document.getElementById("gpu-name").textContent = gpu;
 };
 
 const initTheme = () => {
@@ -125,7 +125,7 @@ const start = async () => {
         return;
     }
 
-    setDevice(data);
+    populateSystemInfo(data);
     initCharts(data);
     populateMetrics(data);
     populateTable(data);
