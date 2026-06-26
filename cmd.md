@@ -1,5 +1,7 @@
 Commands, cuz i keep forgetting:
 
+.\make dashboard -> starts dev server
+
 .\make or .\make check -> cargo check
 
 .\make test -> cargo check + cargo test (all 33 tests)

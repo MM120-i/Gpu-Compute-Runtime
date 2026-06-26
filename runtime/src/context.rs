@@ -26,6 +26,9 @@ pub struct GpuContext{
     pub(crate) allocator: ManuallyDrop<Allocator>,
     pub(crate) command_pool: vk::CommandPool,
 
+    pub(crate) timestamp_query_pool: vk::QueryPool,
+    pub(crate) timestamp_period: f64,
+
     debug_utils_loader: Option<debug_utils::Instance>,
     debug_messenger: Option<vk::DebugUtilsMessengerEXT>,
 }
@@ -151,6 +154,27 @@ impl GpuContext {
             )
         }.map_err(|e: vk::Result| GpuError::Vk("create_command_pool", e))?;
 
+        let timestamp_period: f64 = physical_device_properties.limits.timestamp_period as f64;
+
+        let query_pool_info: vk::QueryPoolCreateInfo<'_> = vk::QueryPoolCreateInfo {
+            s_type: vk::StructureType::QUERY_POOL_CREATE_INFO,
+            p_next: std::ptr::null(),
+            flags: vk::QueryPoolCreateFlags::empty(),
+            query_type: vk::QueryType::TIMESTAMP,
+            query_count: 1024,
+            pipeline_statistics: vk::QueryPipelineStatisticFlags::empty(),
+            _marker: std::marker::PhantomData,
+        };
+
+        let timestamp_query_pool: vk::QueryPool = unsafe {
+            device.create_query_pool(&query_pool_info, None).map_err(|e: vk::Result| GpuError::Vk("create_query_pool", e))?
+        };
+
+        // Reset all slots to valid state
+        unsafe {
+            device.reset_query_pool(timestamp_query_pool, 0, 1024);
+        }
+
         let allocator: ManuallyDrop<Allocator> = ManuallyDrop::new(
             Allocator::new(&gpu_allocator::vulkan::AllocatorCreateDesc {
                 instance: (*instance).clone(),
@@ -172,6 +196,8 @@ impl GpuContext {
             queue_family_index,
             allocator,
             command_pool,
+            timestamp_query_pool,
+            timestamp_period,
             debug_utils_loader,
             debug_messenger
         })
@@ -296,6 +322,12 @@ impl GpuContext {
         pipeline.destroy(self);
     }
 
+    pub fn reset_query_pool(&self, start: u32, count: u32) {
+        unsafe {
+            self.device.reset_query_pool(self.timestamp_query_pool, start, count);
+        }
+    }
+
     pub fn destroy_dispatcher(&mut self, dispatcher: Dispatcher) {
         unsafe {
             self.device().destroy_fence(dispatcher.fence, None);
@@ -308,6 +340,7 @@ impl Drop for GpuContext {
     fn drop(&mut self) {
         unsafe {
             let _ = self.device.device_wait_idle();
+            self.device.destroy_query_pool(self.timestamp_query_pool, None);
             self.device.destroy_command_pool(self.command_pool, None);
             
             ManuallyDrop::drop(&mut self.allocator);

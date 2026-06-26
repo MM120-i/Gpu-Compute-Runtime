@@ -9,6 +9,7 @@ pub struct Dispatcher {
     pub fence: vk::Fence,
 }
 
+#[derive(Clone, Copy)]
 pub struct WorkgroupCount {
     pub x: u32,
     pub y: u32,
@@ -131,6 +132,130 @@ impl Dispatcher {
         }
         
         Ok(())
+    }
+
+    pub fn dispatch_timed(
+        &mut self,
+        ctx: &GpuContext,
+        pipeline: &ComputePipeline,
+        descriptor_set: vk::DescriptorSet,
+        workgroups: WorkgroupCount,
+        start_slot: u32,
+        end_slot: u32,
+    ) -> Result<f64, GpuError> {
+        unsafe {
+            ctx.device().reset_command_buffer(self.command_buffer, vk::CommandBufferResetFlags::empty()).map_err(|e: vk::Result| GpuError::Vk("reset_command_buffer", e))?
+        }
+
+        let begin_info: vk::CommandBufferBeginInfo<'_> = vk::CommandBufferBeginInfo {
+            s_type: vk::StructureType::COMMAND_BUFFER_BEGIN_INFO,
+            p_next: std::ptr::null(),
+            flags: vk::CommandBufferUsageFlags::empty(),
+            p_inheritance_info: std::ptr::null(),
+            _marker: std::marker::PhantomData,
+        };
+
+        unsafe {
+            ctx.device().begin_command_buffer(self.command_buffer, &begin_info).map_err(|e: vk::Result| GpuError::Vk("begin_command_buffer", e))?
+        }
+
+        unsafe {
+            ctx.device().cmd_write_timestamp(
+                self.command_buffer,
+                vk::PipelineStageFlags::TOP_OF_PIPE,
+                ctx.timestamp_query_pool,
+                start_slot,
+            );
+        }
+
+        unsafe {
+            ctx.device().cmd_bind_pipeline(
+                self.command_buffer,
+                vk::PipelineBindPoint::COMPUTE,
+                pipeline.raw_pipeline()
+            );
+        }
+
+        unsafe {
+            ctx.device().cmd_bind_descriptor_sets(
+                self.command_buffer,
+                vk::PipelineBindPoint::COMPUTE,
+                pipeline.raw_layout(),
+                0,
+                &[descriptor_set],
+                &[],
+            );
+        }
+
+        unsafe {
+            ctx.device().cmd_dispatch(
+                self.command_buffer,
+                workgroups.x,
+                workgroups.y,
+                workgroups.z
+            );
+        }
+
+        unsafe {
+            ctx.device().cmd_write_timestamp(
+                self.command_buffer,
+                vk::PipelineStageFlags::COMPUTE_SHADER,
+                ctx.timestamp_query_pool,
+                end_slot,
+            );
+        }
+
+        unsafe {
+            ctx.device().end_command_buffer(self.command_buffer).map_err(|e: vk::Result| GpuError::Vk("end_command_buffer", e))?;
+        }
+
+        let submit_info: vk::SubmitInfo<'_> = vk::SubmitInfo {
+            s_type: vk::StructureType::SUBMIT_INFO,
+            p_next: std::ptr::null(),
+            wait_semaphore_count: 0,
+            p_wait_semaphores: std::ptr::null(),
+            p_wait_dst_stage_mask: std::ptr::null(),
+            command_buffer_count: 1,
+            p_command_buffers: &self.command_buffer,
+            signal_semaphore_count: 0,
+            p_signal_semaphores: std::ptr::null(),
+            _marker: std::marker::PhantomData,
+        };
+
+        unsafe {
+            ctx.device().queue_submit(
+                ctx.compute_queue,
+                &[submit_info],
+                self.fence,
+            ).map_err(|e: vk::Result| GpuError::Vk("queue_submit", e))?;
+        }
+
+        unsafe {
+            ctx.device().wait_for_fences(
+                &[self.fence],
+                true,
+                u64::MAX
+            ).map_err(|e: vk::Result| GpuError::Vk("wait_for_fences", e))?;
+        }
+
+        unsafe {
+            ctx.device().reset_fences(&[self.fence]).map_err(|e: vk::Result| GpuError::Vk("reset_fences", e))?;
+        }
+
+        let mut data: [u64; 2] = [0, 0];
+
+        unsafe {
+            ctx.device().get_query_pool_results(
+                ctx.timestamp_query_pool,
+                start_slot,
+                &mut data[..],
+                vk::QueryResultFlags::TYPE_64 | vk::QueryResultFlags::WAIT,
+            ).map_err(|e: vk::Result| GpuError::Vk("get_query_pool_results", e))?;
+        }
+
+        let ticks: u64 = data[1] - data[0];
+        let ns: f64 = ticks as f64 * ctx.timestamp_period;
+        Ok(ns / 1_000_000.0)
     }
 
     pub fn workgroup_count_1d(total_elements: u32, local_size: u32) -> WorkgroupCount {

@@ -10,6 +10,7 @@ function themeColors() {
   return {
     cpu: getCSS("--cpu-color"),
     gpu: getCSS("--gpu-color"),
+    gpu_ts: getCSS("--gpu-ts-color"),
     grid: getCSS("--chart-grid"),
     tick: getCSS("--text-secondary"),
   };
@@ -21,13 +22,13 @@ export function createBenchmarkChart(canvasId, data) {
   return new Chart(document.getElementById(canvasId), {
     type: "bar",
     data: {
-      labels: ["CPU", "GPU"],
+      labels: ["CPU", "GPU", "GPU (ts)"],
       datasets: [
         {
-          data: [data.cpu_ms, data.gpu_ms],
-          backgroundColor: [colors.cpu, colors.gpu],
+          data: [data.cpu_ms, data.gpu_ms, data.gpu_timestamp_ms],
+          backgroundColor: [colors.cpu, colors.gpu, colors.gpu_ts],
           borderRadius: 4,
-          barThickness: 44,
+          barThickness: 30,
         },
       ],
     },
@@ -72,7 +73,7 @@ export function createBenchmarkChart(canvasId, data) {
 
 export function updateChartTheme(chart) {
   const colors = themeColors();
-  chart.data.datasets[0].backgroundColor = [colors.cpu, colors.gpu];
+  chart.data.datasets[0].backgroundColor = [colors.cpu, colors.gpu, colors.gpu_ts];
   chart.options.scales.y.grid.color = colors.grid;
   chart.options.scales.y.ticks.color = colors.tick;
   chart.options.scales.y.title.color = colors.tick;

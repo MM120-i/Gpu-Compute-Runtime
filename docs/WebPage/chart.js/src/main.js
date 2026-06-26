@@ -31,6 +31,7 @@ const populateMetrics = (data) => {
       ["Workgroup", String(data.scan.workgroup_size)],
       ["Speedup", spd(data.scan.speedup)],
       ["Bandwidth", `${data.scan.bandwidth_gbps.toFixed(2)} GB/s`],
+      ["GPU Timestamp", `${data.scan.gpu_timestamp_ms.toFixed(2)} ms`],
       ["Result", ok(data.scan.correct)],
     ],
     histogram: [
@@ -38,6 +39,7 @@ const populateMetrics = (data) => {
       ["Buckets", String(data.histogram.buckets)],
       ["Speedup", spd(data.histogram.speedup)],
       ["Bandwidth", `${data.histogram.bandwidth_gbps.toFixed(2)} GB/s`],
+      ["GPU Timestamp", `${data.histogram.gpu_timestamp_ms.toFixed(2)} ms`],
       ["Result", ok(data.histogram.correct)],
     ],
     spmv: [
@@ -45,6 +47,7 @@ const populateMetrics = (data) => {
       ["Non-zeros", n(data.spmv.nnz)],
       ["Speedup", spd(data.spmv.speedup)],
       ["Bandwidth", `${data.spmv.bandwidth_gbps.toFixed(2)} GB/s`],
+      ["GPU Timestamp", `${data.spmv.gpu_timestamp_ms.toFixed(2)} ms`],
       ["Result", ok(data.spmv.correct)],
     ],
   };
@@ -80,6 +83,7 @@ const populateTable = (data) => {
         <td>${elems}</td>
         <td>${d.cpu_ms.toFixed(2)}</td>
         <td>${d.gpu_ms.toFixed(2)}</td>
+        <td>${d.gpu_timestamp_ms != null ? d.gpu_timestamp_ms.toFixed(2) : "\u2014"}</td>
         <td>${spd(d.speedup)}</td>
         <td>${d.bandwidth_gbps.toFixed(2)}</td>
         <td>${ok(d.correct)}</td>
