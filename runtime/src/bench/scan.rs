@@ -1,9 +1,3 @@
-// Meat and Potatoes of scan functionality 
-// we got 3 sections here right right right right (right), 
-// 1) GLSL Sources
-// 2) CPU Reference
-// 3) GPU Benchmarks
-
 use std::time::Instant;
 use serde_json::{json, Value};
 use ash::vk::{DescriptorSet, BufferUsageFlags};
@@ -20,10 +14,10 @@ const BENCH_ELEMENTS: usize = 1_048_576;
 const ITERATIONS: u32 = 10;
 
 const PASS1_GLSL: &str = include_str!("../../../kernels/benchmarks/scan_pass1.comp");
-
 const PASS2_GLSL: &str = include_str!("../../../kernels/benchmarks/scan_pass2.comp");
-
 const PASS3_GLSL: &str = include_str!("../../../kernels/benchmarks/scan_pass3.comp");
+const PASS1_WARP_GLSL: &str = include_str!("../../../kernels/benchmarks/scan_pass1_warp.comp");
+const PASS2_WARP_GLSL: &str = include_str!("../../../kernels/benchmarks/scan_pass2_warp.comp");
 
 pub struct ScanState {
     pipeline1: ComputePipeline,
@@ -70,12 +64,28 @@ pub fn init_scan(ctx: &mut GpuContext, n: usize) -> Result<ScanState, GpuError> 
         BufferBinding {slot: 2},
     ];
 
-    let pipeline1: ComputePipeline = ComputePipeline::from_glsl_no_opt(ctx, PASS1_GLSL, "main", &bindings1)?;
+    let warp_shuffle: bool = ctx.subgroup_arithmetic;
+    
+    let src1: &str = if warp_shuffle {
+        PASS1_WARP_GLSL
+    }
+    else{
+        PASS1_GLSL
+    };
+
+    let src2: &str = if warp_shuffle {
+        PASS2_WARP_GLSL
+    }
+    else{
+        PASS2_GLSL
+    };
+
+    let pipeline1: ComputePipeline = ComputePipeline::from_glsl_no_opt(ctx, src1, "main", &bindings1)?;
     let desc1: DescriptorSet = pipeline1.create_descriptor_set(ctx, &[&in_buf, &out_buf, &partial_buf])?;
     let dispatcher1: Dispatcher = Dispatcher::new(ctx)?;
 
     let bindings2: [BufferBinding; 1] = [BufferBinding {slot: 0}];
-    let pipeline2: ComputePipeline = ComputePipeline::from_glsl_no_opt(ctx, PASS2_GLSL, "main", &bindings2)?;
+    let pipeline2: ComputePipeline = ComputePipeline::from_glsl_no_opt(ctx, src2, "main", &bindings2)?;
     let desc2: DescriptorSet = pipeline2.create_descriptor_set(ctx, &[&partial_buf])?;
     let dispatcher2: Dispatcher = Dispatcher::new(ctx)?;
 

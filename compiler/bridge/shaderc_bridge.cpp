@@ -17,6 +17,7 @@ extern "C" {
         shaderc::CompileOptions options;
 
         options.SetTargetEnvironment(shaderc_target_env_vulkan, shaderc_env_version_vulkan_1_3);
+        options.SetTargetSpirv(shaderc_spirv_version_1_6);
         options.SetOptimizationLevel(shaderc_optimization_level_performance);
 
         auto result = compiler.CompileGlslToSpv(source, std::strlen(source), shaderc_glsl_compute_shader, "shader.comp", options);
@@ -45,6 +46,7 @@ extern "C" {
         shaderc::CompileOptions options;
 
         options.SetTargetEnvironment(shaderc_target_env_vulkan,shaderc_env_version_vulkan_1_3);
+        options.SetTargetSpirv(shaderc_spirv_version_1_6);
         options.SetOptimizationLevel(shaderc_optimization_level_performance);
 
         auto result = compiler.CompileGlslToSpv(source, std::strlen(source), shaderc_glsl_compute_shader, "shader.comp", options);

@@ -29,6 +29,10 @@ pub struct GpuContext{
     pub(crate) timestamp_query_pool: vk::QueryPool,
     pub(crate) timestamp_period: f64,
 
+    pub(crate) subgroup_arithmetic: bool,
+    #[allow(dead_code)] // kept for future use
+    pub(crate) subgroup_size: u32,
+
     debug_utils_loader: Option<debug_utils::Instance>,
     debug_messenger: Option<vk::DebugUtilsMessengerEXT>,
 }
@@ -104,6 +108,18 @@ impl GpuContext {
         let physical_device_properties: vk::PhysicalDeviceProperties = unsafe {
             instance.get_physical_device_properties(physical_device)
         };
+
+        let mut subgroups_props: vk::PhysicalDeviceSubgroupProperties<'_> = vk::PhysicalDeviceSubgroupProperties::default();
+        let mut props2: vk::PhysicalDeviceProperties2<'_> = vk::PhysicalDeviceProperties2::default().push_next(&mut subgroups_props);
+
+        unsafe {
+            instance.get_physical_device_properties2(physical_device, &mut props2);
+        }
+
+        let subgroup_arithmetic: bool = subgroups_props.supported_operations
+            .contains(vk::SubgroupFeatureFlags::ARITHMETIC) && subgroups_props.supported_stages.contains(vk::ShaderStageFlags::COMPUTE);
+
+        let subgroup_size: u32 = subgroups_props.subgroup_size;
 
         let device_name_str: String = {
             let name_slice: &[i8; 256] = &physical_device_properties.device_name;
@@ -199,7 +215,9 @@ impl GpuContext {
             timestamp_query_pool,
             timestamp_period,
             debug_utils_loader,
-            debug_messenger
+            debug_messenger,
+            subgroup_arithmetic,
+            subgroup_size,
         })
     }
 
