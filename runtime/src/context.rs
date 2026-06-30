@@ -30,7 +30,6 @@ pub struct GpuContext{
     pub(crate) timestamp_period: f64,
 
     pub(crate) subgroup_arithmetic: bool,
-    #[allow(dead_code)] // kept for future use
     pub(crate) subgroup_size: u32,
 
     debug_utils_loader: Option<debug_utils::Instance>,

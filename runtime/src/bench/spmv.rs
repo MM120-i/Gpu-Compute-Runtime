@@ -20,6 +20,7 @@ const NNZ_PER_ROW_MAX: usize = 24;
 const ITERATIONS: u32 = 10;
 
 const SPMV_GLSL: &str = include_str!("../../../kernels/benchmarks/spmv.comp");
+const SPMV_TILED_GLSL: &str = include_str!("../../../kernels/benchmarks/spmv_tiled.comp");
 
 #[allow(dead_code)]
 struct CsrMatrix {
@@ -60,7 +61,7 @@ struct SpmvState {
     val_buf: GpuBuffer,
     x_buf: GpuBuffer,
     y_buf: GpuBuffer,
-    rows: u32,
+    wg_x: u32,
 }
 
 fn init_spmv(ctx: &mut GpuContext, mat: &CsrMatrix, x: &[f32]) -> Result<SpmvState, GpuError> {
@@ -82,9 +83,25 @@ fn init_spmv(ctx: &mut GpuContext, mat: &CsrMatrix, x: &[f32]) -> Result<SpmvSta
         BufferBinding { slot: 3 },
         BufferBinding { slot: 4 },
     ];
-    let pipeline: ComputePipeline = ComputePipeline::from_glsl_no_opt(ctx, SPMV_GLSL, "main", &bindings)?;
-    let desc: DescriptorSet = pipeline.create_descriptor_set(ctx, &[&row_buf, &col_buf, &val_buf, &x_buf, &y_buf])?;
     let dispatcher: Dispatcher = Dispatcher::new(ctx)?;
+    let is_tiled: bool = ctx.subgroup_arithmetic;
+    
+    let pipeline: ComputePipeline = ComputePipeline::from_glsl_no_opt(
+        ctx,
+        if is_tiled { SPMV_TILED_GLSL } else { SPMV_GLSL },
+        "main",
+        &bindings,
+    )?;
+
+    let desc: DescriptorSet = pipeline.create_descriptor_set(ctx, &[&row_buf, &col_buf, &val_buf, &x_buf, &y_buf])?;
+
+    let wg_x: u32 = if is_tiled {
+        let sg: u32 = WG_SIZE / ctx.subgroup_size;
+        (mat.rows as u32 + sg - 1) / sg
+    } 
+    else {
+        (mat.rows as u32 + WG_SIZE - 1) / WG_SIZE
+    };
 
     Ok(SpmvState { 
         pipeline, 
@@ -95,7 +112,7 @@ fn init_spmv(ctx: &mut GpuContext, mat: &CsrMatrix, x: &[f32]) -> Result<SpmvSta
         val_buf, 
         x_buf, 
         y_buf, 
-        rows: mat.rows as u32
+        wg_x,
     })
 }
 
@@ -110,8 +127,14 @@ fn destroy_spmv(ctx: &mut GpuContext, state: SpmvState) {
 }
 
 fn dispatch_spmv(ctx: &mut GpuContext, state: &mut SpmvState) -> Result<(), GpuError> {
-    let wg: crate::gpu::WorkgroupCount = Dispatcher::workgroup_count_1d(state.rows, WG_SIZE);
+    let wg: crate::gpu::WorkgroupCount = crate::gpu::WorkgroupCount {
+        x: state.wg_x,
+        y: 1,
+        z: 1
+    };
+
     state.dispatcher.dispatch(ctx, &state.pipeline, state.desc, wg)?;
+
     Ok(())
 }
 
@@ -197,11 +220,18 @@ pub fn run_spmv(ctx: &mut GpuContext) -> Result<Value, GpuError> {
     let mut gpu_timestamp_ns: u64 = 0;
 
     for i in 0..ITERATIONS {
+        let wg: crate::gpu::WorkgroupCount = crate::gpu::WorkgroupCount {
+            x: state.wg_x,
+            y: 1,
+            z: 1,
+        };
+
         let elapsed: f64 = state.dispatcher.dispatch_timed(
             ctx, &state.pipeline, state.desc,
-            Dispatcher::workgroup_count_1d(state.rows, WG_SIZE),
+            wg,
             i as u32 * 2, i as u32 * 2 + 1,
         )?;
+        
         gpu_timestamp_ns += (elapsed * 1_000_000.0) as u64;
     }
 
