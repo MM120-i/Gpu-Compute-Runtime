@@ -239,7 +239,7 @@ impl GpuProfiler {
             ).map_err(|e| GpuError::Vk("get_query_pool_results", e))?;
         }
 
-        let ticks: u64 = data[1] - data[0];
+        let ticks: u64 = data[1].checked_sub(data[0]).unwrap_or(0);
 
         Ok(ticks as f64 * ctx.timestamp_period / 1_000_000.0)
     }
