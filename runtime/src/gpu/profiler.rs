@@ -266,6 +266,7 @@ impl GpuProfiler {
 
     pub fn destroy(self, ctx: &mut GpuContext) {
         unsafe {
+            let _ = ctx.device().device_wait_idle();
             ctx.device().destroy_query_pool(self.stats_pool, None);
         }
     }
@@ -274,7 +275,8 @@ impl GpuProfiler {
 impl GpuProfiler {
     pub fn print_report(&self, device_name: &str, entries: &[BenchmarkReport]) {
         let line_width: usize = 15 + 3 + 10 + 3 + 12 + 3 + 11 + 3 + 13;
-        let padding: String = " ".repeat((line_width - device_name.len() - 22) / 2);
+        let available: usize = line_width.saturating_sub(device_name.len() + 22);
+        let padding: String = " ".repeat(available / 2);
 
         println!();
         println!("{}= Profiling Summary -- {} =", padding, device_name);
