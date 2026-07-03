@@ -11,6 +11,7 @@ use crate::error::GpuError;
 use crate::gpu::buffer::GpuBuffer;
 use crate::gpu::pipeline::{BufferBinding, ComputePipeline};
 use crate::gpu::dispatcher::Dispatcher;
+use crate::gpu::profiler::{GpuProfiler, BenchmarkReport};
 
 const WG_SIZE: u32 = 256;
 const ROWS: usize = 262_144;
@@ -156,7 +157,7 @@ fn spmv_cpu(mat: &CsrMatrix, x: &[f32]) -> Vec<f32> {
     y
 }
 
-pub fn run_spmv(ctx: &mut GpuContext) -> Result<Value, GpuError> {
+pub fn run_spmv(ctx: &mut GpuContext, profiler: &GpuProfiler) -> Result<(Value, BenchmarkReport), GpuError> {
     let device_name: String = ctx.device_name();
 
     let small_mat: CsrMatrix = CsrMatrix {
@@ -218,6 +219,7 @@ pub fn run_spmv(ctx: &mut GpuContext) -> Result<Value, GpuError> {
 
     let start: Instant = Instant::now();
     let mut gpu_timestamp_ns: u64 = 0;
+    let mut total_invocations: u64 = 0;
 
     for i in 0..ITERATIONS {
         let wg: crate::gpu::WorkgroupCount = crate::gpu::WorkgroupCount {
@@ -226,13 +228,9 @@ pub fn run_spmv(ctx: &mut GpuContext) -> Result<Value, GpuError> {
             z: 1,
         };
 
-        let elapsed: f64 = state.dispatcher.dispatch_timed(
-            ctx, &state.pipeline, state.desc,
-            wg,
-            i as u32 * 2, i as u32 * 2 + 1,
-        )?;
-        
-        gpu_timestamp_ns += (elapsed * 1_000_000.0) as u64;
+        profiler.dispatch_profiled(&mut state.dispatcher, ctx, &state.pipeline, state.desc, wg, i * 2, i * 2 + 1, i)?;
+        gpu_timestamp_ns += (profiler.get_elapsed_ms(ctx, i * 2)? * 1_000_000.0) as u64;
+        total_invocations += profiler.get_invocations(ctx, i)?;
     }
 
     let gpu_dur: std::time::Duration = start.elapsed();
@@ -253,8 +251,18 @@ pub fn run_spmv(ctx: &mut GpuContext) -> Result<Value, GpuError> {
     let bytes_read: f64 = (total_nnz * 8 + COLS * 4) as f64;
     let bytes_written: f64 = (ROWS * 4) as f64;
     let bandwidth_gbps: f64 = (bytes_read + bytes_written) / (gpu_ms / 1000.0) / 1e9;
+    let avg_invocations: u64 = total_invocations / ITERATIONS as u64;
 
-    Ok(json!({
+    let report = BenchmarkReport {
+        name: "spmv",
+        gpu_ms: (gpu_ms * 100.0).round() / 100.0,
+        gpu_timestamp_ms: (gpu_timestamp_ms * 100.0).round() / 100.0,
+        invocations: avg_invocations,
+        bytes_read,
+        bytes_written,
+    };
+
+    Ok((json!({
         "spmv": {
             "device": device_name,
             "rows": ROWS,
@@ -268,5 +276,5 @@ pub fn run_spmv(ctx: &mut GpuContext) -> Result<Value, GpuError> {
             "speedup": (cpu_ms / gpu_ms * 100.0).round() / 100.0,
             "correct": true,
         }
-    }))
+    }), report))
 }
