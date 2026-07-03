@@ -94,7 +94,7 @@ fn workgroup_construct() {
 #[test]
 fn profiler_report_prints_table() {
     let ctx: GpuContext = GpuContext::new().expect("create GpuContext");
-    let profiler: GpuProfiler = GpuProfiler::new(&ctx);
+    let profiler: GpuProfiler = GpuProfiler::new(&ctx).expect("create GpuProfiler");
     let device_name: String = ctx.device_name();
 
     profiler.print_report(&device_name, &[

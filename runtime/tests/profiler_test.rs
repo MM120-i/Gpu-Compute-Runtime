@@ -6,11 +6,11 @@ use runtime::gpu::profiler::{GpuProfiler, BenchmarkReport};
 
 #[test]
 fn profiled_dispatch_returns_positive_invocations() {
-    let mut ctx = GpuContext::new().expect("create GpuContext");
-    let mut dispatcher = Dispatcher::new(&ctx).expect("create Dispatcher");
-    let profiler = GpuProfiler::new(&ctx);
+    let mut ctx: GpuContext = GpuContext::new().expect("create GpuContext");
+    let mut dispatcher: Dispatcher = Dispatcher::new(&ctx).expect("create Dispatcher");
+    let profiler: GpuProfiler = GpuProfiler::new(&ctx).expect("create GpuProfiler");
 
-    let shader = "\
+    let shader: &str = "\
         #version 450\n\
         layout(local_size_x=256) in;\n\
         layout(std430, binding=0) buffer D { uint data[]; };\n\
@@ -19,10 +19,10 @@ fn profiled_dispatch_returns_positive_invocations() {
             data[gl_GlobalInvocationID.x] = x;\n\
         }";
 
-    let bindings = [BufferBinding { slot: 0 }];
-    let pipeline = ComputePipeline::from_glsl_no_opt(&ctx, shader, "main", &bindings).expect("create pipeline");
-    let buf = GpuBuffer::output_u32(&mut ctx, 65536).expect("create output buffer");
-    let desc_set = pipeline.create_descriptor_set(&ctx, &[&buf]).expect("create descriptor set");
+    let bindings: [BufferBinding; 1] = [BufferBinding { slot: 0 }];
+    let pipeline: ComputePipeline = ComputePipeline::from_glsl_no_opt(&ctx, shader, "main", &bindings).expect("create pipeline");
+    let buf: GpuBuffer = GpuBuffer::output_u32(&mut ctx, 65536).expect("create output buffer");
+    let desc_set: ash::vk::DescriptorSet = pipeline.create_descriptor_set(&ctx, &[&buf]).expect("create descriptor set");
 
     ctx.reset_query_pool(0, 2);
 
@@ -32,7 +32,7 @@ fn profiled_dispatch_returns_positive_invocations() {
         0, 1, 0,
     ).expect("dispatch_profiled");
 
-    let invocations = profiler.get_invocations(&ctx, 0).expect("get_invocations");
+    let invocations: u64 = profiler.get_invocations(&ctx, 0).expect("get_invocations");
     assert!(invocations > 0, "expected positive invocations, got {}", invocations);
 
     ctx.destroy_buffer(buf);
@@ -40,9 +40,9 @@ fn profiled_dispatch_returns_positive_invocations() {
 
 #[test]
 fn profiled_timestamps_monotonic() {
-    let mut ctx = GpuContext::new().expect("create GpuContext");
-    let mut dispatcher = Dispatcher::new(&ctx).expect("create Dispatcher");
-    let profiler = GpuProfiler::new(&ctx);
+    let mut ctx: GpuContext = GpuContext::new().expect("create GpuContext");
+    let mut dispatcher: Dispatcher = Dispatcher::new(&ctx).expect("create Dispatcher");
+    let profiler: GpuProfiler = GpuProfiler::new(&ctx).expect("create GpuProfiler");
 
     let shader = "\
         #version 450\n\
@@ -53,10 +53,10 @@ fn profiled_timestamps_monotonic() {
             data[gl_GlobalInvocationID.x] = gl_GlobalInvocationID.x;\n\
         }";
 
-    let bindings = [BufferBinding { slot: 0 }];
-    let pipeline = ComputePipeline::from_glsl_no_opt(&ctx, shader, "main", &bindings).expect("create pipeline");
-    let buf = GpuBuffer::output_u32(&mut ctx, 65536).expect("create output buffer");
-    let desc_set = pipeline.create_descriptor_set(&ctx, &[&buf]).expect("create descriptor set");
+    let bindings: [BufferBinding; 1] = [BufferBinding { slot: 0 }];
+    let pipeline: ComputePipeline = ComputePipeline::from_glsl_no_opt(&ctx, shader, "main", &bindings).expect("create pipeline");
+    let buf: GpuBuffer = GpuBuffer::output_u32(&mut ctx, 65536).expect("create output buffer");
+    let desc_set: ash::vk::DescriptorSet = pipeline.create_descriptor_set(&ctx, &[&buf]).expect("create descriptor set");
 
     ctx.reset_query_pool(0, 6);
 
@@ -66,7 +66,7 @@ fn profiled_timestamps_monotonic() {
         0, 1, 0,
     ).expect("dispatch_profiled small");
 
-    let ts_small = profiler.get_elapsed_ms(&ctx, 0).expect("get_elapsed_ms small");
+    let ts_small: f64 = profiler.get_elapsed_ms(&ctx, 0).expect("get_elapsed_ms small");
     assert!(ts_small > 0.0, "timestamp should be positive, got {}", ts_small);
 
     profiler.dispatch_profiled(
@@ -75,7 +75,7 @@ fn profiled_timestamps_monotonic() {
         2, 3, 1,
     ).expect("dispatch_profiled large");
 
-    let ts_large = profiler.get_elapsed_ms(&ctx, 2).expect("get_elapsed_ms large");
+    let ts_large: f64 = profiler.get_elapsed_ms(&ctx, 2).expect("get_elapsed_ms large");
     assert!(ts_large > ts_small, "256 workgroups ({:.4} ms) should exceed 1 ({:.4} ms)", ts_large, ts_small);
 
     ctx.destroy_buffer(buf);
@@ -83,26 +83,26 @@ fn profiled_timestamps_monotonic() {
 
 #[test]
 fn bandwidth_utilization_formula() {
-    let ctx = GpuContext::new().expect("create GpuContext");
-    let profiler = GpuProfiler::new(&ctx);
+    let ctx: GpuContext = GpuContext::new().expect("create GpuContext");
+    let profiler: GpuProfiler = GpuProfiler::new(&ctx).expect("create GpuProfiler");
 
-    let bytes_total = 10_000_000.0;
-    let time_ms = 1.0;
-    let bw_pct = profiler.bandwidth_utilization(bytes_total, time_ms);
+    let bytes_total: f64 = 10_000_000.0;
+    let time_ms: f64 = 1.0;
+    let bw_pct: f64 = profiler.bandwidth_utilization(bytes_total, time_ms);
 
     assert!(bw_pct > 0.0, "bandwidth should be > 0%");
     assert!(bw_pct < 100.0, "bandwidth should be < 100% (got {}%)", bw_pct);
 
-    let mut manual = profiler;
+    let mut manual: GpuProfiler = profiler;
     manual.set_peak_bandwidth(10.0);
-    let bw_10gbps = manual.bandwidth_utilization(10_000_000_000.0, 1000.0);
+    let bw_10gbps: f64 = manual.bandwidth_utilization(10_000_000_000.0, 1000.0);
     assert!((bw_10gbps - 100.0).abs() < 0.01, "10 GB/s on 10 GB/s peak should be 100%, got {}", bw_10gbps);
 }
 
 #[test]
 fn format_invocations_used_in_report() {
-    let ctx = GpuContext::new().expect("create GpuContext");
-    let profiler = GpuProfiler::new(&ctx);
+    let ctx: GpuContext = GpuContext::new().expect("create GpuContext");
+    let profiler: GpuProfiler = GpuProfiler::new(&ctx).expect("create GpuProfiler");
 
     profiler.print_report(&ctx.device_name(), &[
         BenchmarkReport {
@@ -118,13 +118,12 @@ fn format_invocations_used_in_report() {
 
 #[test]
 fn set_peak_bandwidth_updates_value() {
-    let ctx = GpuContext::new().expect("create GpuContext");
-    let mut profiler = GpuProfiler::new(&ctx);
-
-    let before = profiler.bandwidth_utilization(1_000_000_000.0, 1000.0);
+    let ctx: GpuContext = GpuContext::new().expect("create GpuContext");
+    let mut profiler: GpuProfiler = GpuProfiler::new(&ctx).expect("create GpuProfiler");
+    let before: f64 = profiler.bandwidth_utilization(1_000_000_000.0, 1000.0);
 
     profiler.set_peak_bandwidth(1000.0);
-    let after = profiler.bandwidth_utilization(1_000_000_000.0, 1000.0);
+    let after: f64 = profiler.bandwidth_utilization(1_000_000_000.0, 1000.0);
 
     assert!(after < before, "higher peak should give lower utilization");
 }

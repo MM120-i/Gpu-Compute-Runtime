@@ -98,7 +98,7 @@ fn format_invocations(n: u64) -> String {
 }
 
 impl GpuProfiler {
-    pub fn new(ctx: &GpuContext) -> Self {
+    pub fn new(ctx: &GpuContext) -> Result<Self, GpuError> {
         let pool_info: vk::QueryPoolCreateInfo<'_> = vk::QueryPoolCreateInfo {
             s_type: vk::StructureType::QUERY_POOL_CREATE_INFO,
             p_next: std::ptr::null(),
@@ -110,7 +110,7 @@ impl GpuProfiler {
         };
 
         let stats_pool: vk::QueryPool = unsafe {
-            ctx.device().create_query_pool(&pool_info, None).expect("create pipeline statistics query pool")
+            ctx.device().create_query_pool(&pool_info, None).map_err(|e| GpuError::Vk("create_query_pool", e))?
         };
 
         unsafe {
@@ -119,7 +119,7 @@ impl GpuProfiler {
 
         let peak_bandwidth_gbps: f64 = lookup_peak_bandwidth(&ctx.device_name());
 
-        Self { stats_pool, peak_bandwidth_gbps }
+        Ok(Self { stats_pool, peak_bandwidth_gbps })
     }
 
     pub fn set_peak_bandwidth(&mut self, gbps: f64){
