@@ -67,14 +67,9 @@ impl GpuProfiler {
                 ctx.timestamp_query_pool,
                 timestamp_slot,
             );
-
-            ctx.device().cmd_begin_query(
-                dispatcher.command_buffer,
-                self.stats_pool,
-                stats_slot,
-                vk::QueryControlFlags::empty(),
-            );
         }
+
+        dispatcher.begin_stats_query(ctx, self.stats_pool, stats_slot);
     }
 
     pub fn end_profile(
@@ -84,13 +79,9 @@ impl GpuProfiler {
         timestamp_slot: u32,
         stats_slot: u32,
     ) {
+        dispatcher.end_stats_query(ctx, self.stats_pool, stats_slot);
+        
         unsafe {
-            ctx.device().cmd_end_query(
-                dispatcher.command_buffer,
-                self.stats_pool,
-                stats_slot,
-            );
-
             ctx.device().cmd_write_timestamp(
                 dispatcher.command_buffer,
                 vk::PipelineStageFlags::COMPUTE_SHADER,
