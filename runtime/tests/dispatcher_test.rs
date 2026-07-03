@@ -3,6 +3,7 @@ use std::time::Instant;
 use runtime::gpu::buffer::GpuBuffer;
 use runtime::gpu::dispatcher::{Dispatcher, WorkgroupCount};
 use runtime::gpu::pipeline::{BufferBinding, ComputePipeline};
+use runtime::gpu::profiler::{GpuProfiler, BenchmarkReport};
 
 #[test]
 fn timestamp_queries_work() {
@@ -88,4 +89,40 @@ fn workgroup_construct() {
     assert_eq!(wg.x, 8);
     assert_eq!(wg.y, 4);
     assert_eq!(wg.z, 2);
+}
+
+#[test]
+fn profiler_report_prints_table() {
+    let ctx: GpuContext = GpuContext::new().expect("create GpuContext");
+    let profiler: GpuProfiler = GpuProfiler::new(&ctx).expect("create GpuProfiler");
+    let device_name: String = ctx.device_name();
+
+    profiler.print_report(&device_name, &[
+        BenchmarkReport {
+            name: "scan",
+            gpu_ms: 1.27,
+            gpu_timestamp_ms: 0.84,
+            invocations: 4096,
+            bytes_read: 8_388_608.0,
+            bytes_written: 4_194_304.0,
+        },
+        BenchmarkReport {
+            name: "histogram",
+            gpu_ms: 0.66,
+            gpu_timestamp_ms: 0.48,
+            invocations: 4096,
+            bytes_read: 8_388_608.0,
+            bytes_written: 1_024.0,
+        },
+        BenchmarkReport {
+            name: "spmv",
+            gpu_ms: 2.97,
+            gpu_timestamp_ms: 2.81,
+            invocations: 32_768,
+            bytes_read: 37_700_208.0,
+            bytes_written: 1_048_576.0,
+        },
+    ]);
+
+    assert!(profiler.bandwidth_utilization(12_582_912.0, 0.84) > 0.0);
 }

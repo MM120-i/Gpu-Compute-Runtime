@@ -253,7 +253,7 @@ impl Dispatcher {
             ).map_err(|e: vk::Result| GpuError::Vk("get_query_pool_results", e))?;
         }
 
-        let ticks: u64 = data[1] - data[0];
+        let ticks: u64 = data[1].checked_sub(data[0]).unwrap_or(0);
         let ns: f64 = ticks as f64 * ctx.timestamp_period;
         Ok(ns / 1_000_000.0)
     }
@@ -263,6 +263,23 @@ impl Dispatcher {
             x: (total_elements + local_size - 1) / local_size, 
             y: 1, 
             z: 1,
+        }
+    }
+
+    pub fn begin_stats_query(&self, ctx: &GpuContext, pool: vk::QueryPool, slot: u32){
+        unsafe {
+            ctx.device().cmd_begin_query(
+                self.command_buffer, 
+                pool, 
+                slot, 
+                vk::QueryControlFlags::empty(),
+            );
+        }
+    }
+
+    pub fn end_stats_query(&self, ctx: &GpuContext, pool: vk::QueryPool, slot: u32){
+        unsafe {
+            ctx.device().cmd_end_query(self.command_buffer, pool, slot);
         }
     }
 }
