@@ -1,8 +1,6 @@
 use std::path::PathBuf;
 use clap::Parser;
 
-// test changes
-
 #[derive(Parser)]
 #[command(name = "gcr", about = "GPU Compute Runtime — GLSL to SPIR-V pipeline")]
 pub struct Cli {
