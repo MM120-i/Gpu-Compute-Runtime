@@ -174,10 +174,16 @@ pub fn run_histogram(ctx: &mut GpuContext, profiler: &GpuProfiler) -> Result<(Va
     let bandwidth_gbps: f64 = bytes / (gpu_ms / 1000.0) / 1e9;
     let avg_invocations: u64 = total_invocations / ITERATIONS as u64;
 
+    let gpu_ms_r = (gpu_ms * 100.0).round() / 100.0;
+    let gpu_ts_ms_r = (gpu_timestamp_ms * 100.0).round() / 100.0;
+    let cpu_ms_r = (cpu_ms * 100.0).round() / 100.0;
+    let bw_gbps_r = (bandwidth_gbps * 100.0).round() / 100.0;
+    let speedup_r = (cpu_ms / gpu_ms * 100.0).round() / 100.0;
+
     let report = BenchmarkReport {
         name: "histogram",
-        gpu_ms: (gpu_ms * 100.0).round() / 100.0,
-        gpu_timestamp_ms: (gpu_timestamp_ms * 100.0).round() / 100.0,
+        gpu_ms: gpu_ms_r,
+        gpu_timestamp_ms: gpu_ts_ms_r,
         invocations: avg_invocations,
         bytes_read,
         bytes_written,
@@ -190,11 +196,11 @@ pub fn run_histogram(ctx: &mut GpuContext, profiler: &GpuProfiler) -> Result<(Va
             "buckets": BUCKETS,
             "range": RANGE,
             "workgroup_size": WG_SIZE,
-            "gpu_ms": (gpu_ms * 100.0).round() / 100.0,
-            "gpu_timestamp_ms": (gpu_timestamp_ms * 100.0).round() / 100.0,
-            "cpu_ms": (cpu_ms * 100.0).round() / 100.0,
-            "bandwidth_gbps": (bandwidth_gbps * 100.0).round() / 100.0,
-            "speedup": (cpu_ms / gpu_ms * 100.0).round() / 100.0,
+            "gpu_ms": gpu_ms_r,
+            "gpu_timestamp_ms": gpu_ts_ms_r,
+            "cpu_ms": cpu_ms_r,
+            "bandwidth_gbps": bw_gbps_r,
+            "speedup": speedup_r,
             "correct": true,
         }
     }), report))
