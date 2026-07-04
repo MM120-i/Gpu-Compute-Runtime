@@ -284,7 +284,6 @@ impl GpuContext {
         String::from_utf8_lossy(name_bytes).to_string()
     }
 
-<<<<<<< HEAD
     pub fn vulkan_version(&self) -> String {
         let ver: u32 = self.physical_device_properties.api_version;
 
@@ -300,8 +299,6 @@ impl GpuContext {
         self.subgroup_size
     }
 
-=======
->>>>>>> e8fb6294a7fa895bd91cec17cb8e6923fac90c18
     pub fn wait_idle(&self) -> Result<(), GpuError> {
         unsafe {
             self.device.device_wait_idle()
