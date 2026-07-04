@@ -25,10 +25,10 @@ bandwidth you're actually using. Results go to a live real time dashboard.
 
 ![Architecture diagram](docs/WebPage/chart.js/public/diagram.jpg)
 
-- **Rust runtime** (`runtime/`) — library crate that talks to Vulkan via `ash`. Device setup, buffer management (host-visible, persistent-mapped), shader pipeline creation, dispatch, timestamp/pipeline-statistics profiling.
-- **C++ compiler frontend** (`compiler/`) — compiles GLSL to SPIR-V via `shaderc` with a C ABI bridge (`extern "C"`). Includes hand-written preprocessor and unroller passes.
-- **Kernels** (`kernels/benchmarks/`) — compute shaders: 3-pass parallel prefix sum (warp-shuffle or shared-memory fallback), PRSG histogram, tiled/naive sparse matrix-vector multiply.
-- **Dashboard** (`docs/WebPage/chart.js/`) — Vite + Chart.js app. Reads `bench_results.json` and renders interactive bar charts (CPU vs GPU wall vs GPU timestamp). Auto-deployed via GitHub Actions.
+- **Rust runtime** (`runtime/`): Library crate that talks to Vulkan via `ash`. Device setup, buffer management (host visible, persistent mapped), shader pipeline creation, dispatch, timestamp/pipeline-statistics profiling.
+- **C++ compiler frontend** (`compiler/`): Compiles GLSL to SPIR-V via `shaderc` with a C ABI bridge (`extern "C"`). Includes hand written preprocessor and unroller passes.
+- **Kernels** (`kernels/benchmarks/`): Compute shaders: 3 pass parallel prefix sum (warp shuffle or shared memory fallback), PRSG histogram, tiled/naive sparse matrix vector multiply.
+- **Dashboard** (`docs/WebPage/chart.js/`): Vite + Chart.js app. Reads `bench_results.json` and renders interactive bar charts (CPU vs GPU wall vs GPU timestamp). Auto deployed via GitHub Actions.
 
 ---
 
