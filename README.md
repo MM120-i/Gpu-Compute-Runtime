@@ -4,50 +4,26 @@ A GPU compute runtime built from scratch. Compiles shaders, dispatches them on t
 
 ## What even is this
 
-GPU Compute Runtime gives you direct GPU compute access through Vulkan without locking you into one vendor's ecosystem. Running computation on a GPU usually means choosing between CUDA (stuck with NVIDIA) or a high-level framework like PyTorch that hides everything from you. This project sits right between those two, no framework overhead, no vendor lock in, works the same on AMD, NVIDIA, and Intel GPUs.
+So you know how your CPU has a handful of fast cores that run your programs? A GPU
+is like a second processor inside your machine, but instead of a few fast cores,
+it has thousands of simpler ones that all work in parallel. It's not just for
+graphics, you can run any computation on it: physics simulations, sorting
+algorithms, machine learning kernels.
 
-Under the hood it's a complete Vulkan compute stack: a C++ frontend compiles GLSL shaders into SPIR-V, a hand-written Rust runtime dispatches them using ash, and a built-in profiler records hardware timestamps and pipeline statistics on every dispatch to tell you what percentage of your GPU's peak bandwidth you're actually using.
+This project gives you a way to write programs that run on that second
+processor, from scratch. You feed it shader code (GLSL), it compiles them through a C++ frontend, and a Rust runtime talks to the Vulkan driver to dispatch them onto the GPU. The project is compatable across NVIDIA, AMD, and Intel GPUs no vendor lock in, no framework overhead.
 
-Shaders automatically pick between warp-shuffle and shared-memory versions depending on what your specific GPU supports. Benchmark results are visualized by a live Chart.js dashboard that deploys automatically on every push.
+It also profiles every dispatch. Instead of timing with a wall clock (which
+includes the CPU overhead of telling the GPU what to do), it uses the GPU's own
+hardware timestamps and invocation counters to report: exactly how long your
+computation took on the silicon, and what percentage of the GPU's peak memory
+bandwidth you're actually using. Results go to a live real time dashboard.
 
 ---
 
 ## Architecture
 
-```
-                       ┌──────────────────────┐
-                       │   Benchmarks & CLI     │
-                       │  scan · histogram · spmv│
-                       └──────────┬─────────────┘
-                                  │
-             ┌────────────────────┼────────────────────┐
-             │                    │                    │
-    ┌────────▼────────┐  ┌───────▼──────┐  ┌─────────▼──────────┐
-    │   GpuProfiler    │  │   GpuBuffer   │  │  ComputePipeline   │
-    │  timestamps      │  │  upload()     │  │  from_glsl()       │
-    │  pipe statistics │  │  download()   │  │  descriptor sets   │
-    │  BW % of peak    │  │               │  │                    │
-    └────────┬─────────┘  └───────┬───────┘  └─────────┬──────────┘
-             │                    │                    │
-             └────────────────────┼────────────────────┘
-                                  │
-                          ┌───────▼───────┐
-                          │   Dispatcher   │
-                          │  dispatch()    │
-                          │  dispatch_     │
-                          │  timed()       │
-                          └───────┬───────┘
-                                  │
-             ┌────────────────────┼────────────────────┐
-             │                    │                    │
-    ┌────────▼────────┐  ┌───────▼──────┐  ┌─────────▼──────────┐
-    │    GpuContext     │  │  shaderc FFI │  │   Vulkan (ash)     │
-    │  device/queue     │  │  C++ → SPIR-V│  │  instance/device   │
-    │  command pool     │  │  SPIR-V 1.6  │  │  compute queue     │
-    │  timestamp pool   │  │              │  │  GPU allocator     │
-    │  subgroup props   │  │              │  │                    │
-    └───────────────────┘  └──────────────┘  └────────────────────┘
-```
+![Architecture diagram](docs/WebPage/chart.js/public/diagram.jpg)
 
 - **Rust runtime** (`runtime/`) — library crate that talks to Vulkan via `ash`. Device setup, buffer management (host-visible, persistent-mapped), shader pipeline creation, dispatch, timestamp/pipeline-statistics profiling.
 - **C++ compiler frontend** (`compiler/`) — compiles GLSL to SPIR-V via `shaderc` with a C ABI bridge (`extern "C"`). Includes hand-written preprocessor and unroller passes.
@@ -63,6 +39,7 @@ Shaders automatically pick between warp-shuffle and shared-memory versions depen
 - Rust 1.75+ (`rustup`)
 - Vulkan SDK 1.3+ ([LunarG](https://vulkan.lunarg.com/))
 - A GPU with Vulkan compute support
+- +- Node.js 20+ / npm for the dashboard
 
 Verify:
 

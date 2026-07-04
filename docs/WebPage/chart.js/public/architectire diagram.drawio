@@ -1,0 +1,76 @@
+<mxfile host="Electron">
+  <diagram name="Page-1" id="aOk50hNcN-NF-PN9BIGi">
+    <mxGraphModel dx="813" dy="979" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="DFj5TIBsmtXrw4kEQ00d-2" edge="1" parent="1" source="DFj5TIBsmtXrw4kEQ00d-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;curved=1;" target="DFj5TIBsmtXrw4kEQ00d-3">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="442.5" y="370" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="DFj5TIBsmtXrw4kEQ00d-9" edge="1" parent="1" source="DFj5TIBsmtXrw4kEQ00d-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="300" y="330" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="DFj5TIBsmtXrw4kEQ00d-10" edge="1" parent="1" source="DFj5TIBsmtXrw4kEQ00d-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="DFj5TIBsmtXrw4kEQ00d-11">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="560" y="330" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="DFj5TIBsmtXrw4kEQ00d-1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Benchmarks &amp;amp; CLI&lt;div&gt;Scan&amp;nbsp;&lt;span style=&quot;background-color: rgb(17, 17, 17); color: rgb(204, 204, 204); font-family: Consolas, &amp;quot;Courier New&amp;quot;, monospace; font-size: 14px; white-space: pre;&quot;&gt;· Histogram &lt;/span&gt;&lt;span style=&quot;background-color: rgb(17, 17, 17); color: rgb(204, 204, 204); font-family: Consolas, &amp;quot;Courier New&amp;quot;, monospace; font-size: 14px; white-space: pre;&quot;&gt;· SpMV&lt;/span&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="60" width="275" x="305" y="180" as="geometry" />
+        </mxCell>
+        <mxCell id="DFj5TIBsmtXrw4kEQ00d-17" edge="1" parent="1" source="DFj5TIBsmtXrw4kEQ00d-3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="442.4999999999999" y="560" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="DFj5TIBsmtXrw4kEQ00d-3" parent="1" style="whiteSpace=wrap;html=1;aspect=fixed;" value="GpuBuffer&lt;div&gt;upload()&lt;/div&gt;&lt;div&gt;download()&lt;/div&gt;" vertex="1">
+          <mxGeometry height="116.88" width="116.88" x="384.06" y="333.12" as="geometry" />
+        </mxCell>
+        <mxCell id="DFj5TIBsmtXrw4kEQ00d-16" edge="1" parent="1" style="rounded=0;orthogonalLoop=1;jettySize=auto;html=1;edgeStyle=elbowEdgeStyle;elbow=vertical;entryX=0.443;entryY=0.984;entryDx=0;entryDy=0;entryPerimeter=0;endArrow=none;endFill=0;">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="420" y="520" />
+            </Array>
+            <mxPoint x="580" y="430" as="sourcePoint" />
+            <mxPoint x="293.15999999999997" y="431.1999999999998" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="DFj5TIBsmtXrw4kEQ00d-11" parent="1" style="whiteSpace=wrap;html=1;aspect=fixed;" value="ComputePipeline&lt;div&gt;from_glsl()&lt;/div&gt;&lt;div&gt;descriptor sets&lt;/div&gt;" vertex="1">
+          <mxGeometry height="120" width="120" x="520" y="330" as="geometry" />
+        </mxCell>
+        <mxCell id="DFj5TIBsmtXrw4kEQ00d-13" parent="1" style="whiteSpace=wrap;html=1;aspect=fixed;" value="GpuProfiler&lt;div&gt;timestamps&lt;/div&gt;&lt;div&gt;pipe statistics&lt;/div&gt;&lt;div&gt;BW % of peak&lt;/div&gt;" vertex="1">
+          <mxGeometry height="120" width="120" x="240" y="333.12" as="geometry" />
+        </mxCell>
+        <mxCell id="DFj5TIBsmtXrw4kEQ00d-19" edge="1" parent="1" source="DFj5TIBsmtXrw4kEQ00d-18" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="442.4999999999999" y="760" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="DFj5TIBsmtXrw4kEQ00d-18" parent="1" style="whiteSpace=wrap;html=1;aspect=fixed;" value="Dispatcher&lt;div&gt;dispatcher(0&lt;/div&gt;&lt;div&gt;dispatch_&lt;/div&gt;&lt;div&gt;timed()&lt;/div&gt;" vertex="1">
+          <mxGeometry height="116.88" width="116.88" x="384.06" y="560" as="geometry" />
+        </mxCell>
+        <mxCell id="DFj5TIBsmtXrw4kEQ00d-20" parent="1" style="whiteSpace=wrap;html=1;aspect=fixed;" value="shaderc FFI&lt;div&gt;C++ -&amp;gt; SPIR-V&lt;/div&gt;&lt;div&gt;SPIR-V 1.6&lt;/div&gt;" vertex="1">
+          <mxGeometry height="116.88" width="116.88" x="384.06" y="760" as="geometry" />
+        </mxCell>
+        <mxCell id="DFj5TIBsmtXrw4kEQ00d-23" parent="1" style="whiteSpace=wrap;html=1;aspect=fixed;" value="Vulkan (ash)&lt;div&gt;instance/device&lt;/div&gt;&lt;div&gt;compute queue&lt;/div&gt;&lt;div&gt;GPU Allocator&lt;/div&gt;" vertex="1">
+          <mxGeometry height="116.88" width="116.88" x="560" y="760" as="geometry" />
+        </mxCell>
+        <mxCell id="DFj5TIBsmtXrw4kEQ00d-25" edge="1" parent="1" source="DFj5TIBsmtXrw4kEQ00d-24" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;endArrow=none;endFill=0;" target="DFj5TIBsmtXrw4kEQ00d-23">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="268" y="710" />
+              <mxPoint x="618" y="710" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="DFj5TIBsmtXrw4kEQ00d-24" parent="1" style="whiteSpace=wrap;html=1;aspect=fixed;" value="GpuContext&lt;div&gt;device/queue&lt;/div&gt;&lt;div&gt;command pool&lt;/div&gt;&lt;div&gt;timestamp pool&lt;/div&gt;&lt;div&gt;subgroup props&lt;/div&gt;" vertex="1">
+          <mxGeometry height="116.88" width="116.88" x="210" y="760" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
