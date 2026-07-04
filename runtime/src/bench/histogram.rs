@@ -11,6 +11,7 @@ use crate::error::GpuError;
 use crate::gpu::buffer::GpuBuffer;
 use crate::gpu::pipeline::{BufferBinding, ComputePipeline};
 use crate::gpu::dispatcher::Dispatcher;
+use crate::gpu::profiler::{GpuProfiler, BenchmarkReport};
 
 const WG_SIZE: u32 = 256;
 const BUCKETS: usize = 256;
@@ -82,7 +83,7 @@ fn dispatch_histogram(ctx: &mut GpuContext, state: &mut HistogramState, n: u32) 
     Ok(())
 }
 
-pub fn run_histogram(ctx: &mut GpuContext) -> Result<Value, GpuError> {
+pub fn run_histogram(ctx: &mut GpuContext, profiler: &GpuProfiler) -> Result<(Value, BenchmarkReport), GpuError> {
     let device_name: String = ctx.device_name();
     let mut state: HistogramState = init_histogram(ctx)?;
 
@@ -142,15 +143,15 @@ pub fn run_histogram(ctx: &mut GpuContext) -> Result<Value, GpuError> {
 
     let start = Instant::now();
     let mut gpu_timestamp_ns: u64 = 0;
+    let mut total_invocations: u64 = 0;
+
+    let wg = Dispatcher::workgroup_count_1d(BENCH_ELEMENTS as u32, WG_SIZE);
 
     for i in 0..ITERATIONS {
         state.out_buf.upload(&vec![0u32; BUCKETS])?;
-        let elapsed: f64 = state.dispatcher.dispatch_timed(
-            ctx, &state.pipeline, state.desc,
-            Dispatcher::workgroup_count_1d(BENCH_ELEMENTS as u32, WG_SIZE),
-            i * 2, i * 2 + 1,
-        )?;
-        gpu_timestamp_ns += (elapsed * 1_000_000.0) as u64;
+        profiler.dispatch_profiled(&mut state.dispatcher, ctx, &state.pipeline, state.desc, wg, i * 2, i * 2 + 1, i)?;
+        gpu_timestamp_ns += (profiler.get_elapsed_ms(ctx, i * 2)? * 1_000_000.0) as u64;
+        total_invocations += profiler.get_invocations(ctx, i)?;
     }
 
     let gpu_dur: std::time::Duration = start.elapsed();
@@ -167,22 +168,40 @@ pub fn run_histogram(ctx: &mut GpuContext) -> Result<Value, GpuError> {
 
     destroy_histogram(ctx, state);
 
-    let bytes: f64 = (BENCH_ELEMENTS * 4 + BUCKETS * 4) as f64;
+    let bytes_read: f64 = (BENCH_ELEMENTS * 4) as f64;
+    let bytes_written: f64 = (BUCKETS * 4) as f64;
+    let bytes: f64 = bytes_read + bytes_written;
     let bandwidth_gbps: f64 = bytes / (gpu_ms / 1000.0) / 1e9;
+    let avg_invocations: u64 = total_invocations / ITERATIONS as u64;
 
-    Ok(json!({
+    let gpu_ms_r = (gpu_ms * 100.0).round() / 100.0;
+    let gpu_ts_ms_r = (gpu_timestamp_ms * 100.0).round() / 100.0;
+    let cpu_ms_r = (cpu_ms * 100.0).round() / 100.0;
+    let bw_gbps_r = (bandwidth_gbps * 100.0).round() / 100.0;
+    let speedup_r = (cpu_ms / gpu_ms * 100.0).round() / 100.0;
+
+    let report = BenchmarkReport {
+        name: "histogram",
+        gpu_ms: gpu_ms_r,
+        gpu_timestamp_ms: gpu_ts_ms_r,
+        invocations: avg_invocations,
+        bytes_read,
+        bytes_written,
+    };
+
+    Ok((json!({
         "histogram": {
             "device": device_name,
             "elements": BENCH_ELEMENTS,
             "buckets": BUCKETS,
             "range": RANGE,
             "workgroup_size": WG_SIZE,
-            "gpu_ms": (gpu_ms * 100.0).round() / 100.0,
-            "gpu_timestamp_ms": (gpu_timestamp_ms * 100.0).round() / 100.0,
-            "cpu_ms": (cpu_ms * 100.0).round() / 100.0,
-            "bandwidth_gbps": (bandwidth_gbps * 100.0).round() / 100.0,
-            "speedup": (cpu_ms / gpu_ms * 100.0).round() / 100.0,
+            "gpu_ms": gpu_ms_r,
+            "gpu_timestamp_ms": gpu_ts_ms_r,
+            "cpu_ms": cpu_ms_r,
+            "bandwidth_gbps": bw_gbps_r,
+            "speedup": speedup_r,
             "correct": true,
         }
-    }))
+    }), report))
 }

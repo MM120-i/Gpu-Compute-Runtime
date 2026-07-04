@@ -76,6 +76,7 @@ impl GpuContext {
         );
         
         let has_validation: bool = !layer_ptrs.is_empty();
+
         let (debug_utils_loader, debug_messenger) = if has_validation {
             let debug_loader: debug_utils::Instance = debug_utils::Instance::new(&entry, &instance);
             let create_info: vk::DebugUtilsMessengerCreateInfoEXT<'_> = vk::DebugUtilsMessengerCreateInfoEXT {
@@ -91,6 +92,7 @@ impl GpuContext {
                 p_user_data: std::ptr::null_mut(),
                 _marker: std::marker::PhantomData,
             };
+            
             let messenger: vk::DebugUtilsMessengerEXT = unsafe {
                 debug_loader.create_debug_utils_messenger(&create_info, None)
                     .map_err(|e: vk::Result| GpuError::Vk("create_debug_utils_messenger", e))?
@@ -282,6 +284,7 @@ impl GpuContext {
         String::from_utf8_lossy(name_bytes).to_string()
     }
 
+<<<<<<< HEAD
     pub fn vulkan_version(&self) -> String {
         let ver: u32 = self.physical_device_properties.api_version;
 
@@ -297,6 +300,8 @@ impl GpuContext {
         self.subgroup_size
     }
 
+=======
+>>>>>>> e8fb6294a7fa895bd91cec17cb8e6923fac90c18
     pub fn wait_idle(&self) -> Result<(), GpuError> {
         unsafe {
             self.device.device_wait_idle()

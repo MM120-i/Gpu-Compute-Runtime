@@ -8,6 +8,7 @@ use crate::error::GpuError;
 use crate::gpu::buffer::GpuBuffer;
 use crate::gpu::pipeline::{BufferBinding, ComputePipeline};
 use crate::gpu::dispatcher::{Dispatcher, WorkgroupCount};
+use crate::gpu::profiler::{GpuProfiler, BenchmarkReport};
 
 const WG_SIZE: u32 = 256;
 const BENCH_ELEMENTS: usize = 1_048_576;   
@@ -192,7 +193,7 @@ fn test_scan_correctness(ctx: &mut GpuContext, state: &mut ScanState) -> Result<
     Ok(())
 }
 
-pub fn run_scan(ctx: &mut GpuContext) -> Result<Value, GpuError> {
+pub fn run_scan(ctx: &mut GpuContext, profiler: &GpuProfiler) -> Result<(Value, BenchmarkReport), GpuError> {
     let device_name: String = ctx.device_name();
     let mut state: ScanState = init_scan(ctx, BENCH_ELEMENTS)?;
 
@@ -210,12 +211,21 @@ pub fn run_scan(ctx: &mut GpuContext) -> Result<Value, GpuError> {
 
     let start: Instant = Instant::now();
     let mut gpu_timestamp_ns: u64 = 0;
+    let mut total_invocations: u64 = 0;
 
     for i in 0..ITERATIONS {
-        let base: u32 = i as u32 * 6;
-        gpu_timestamp_ns += (state.dispatcher1.dispatch_timed(ctx, &state.pipeline1, state.desc1, wg1, base, base + 1)? * 1_000_000.0) as u64;
-        gpu_timestamp_ns += (state.dispatcher2.dispatch_timed(ctx, &state.pipeline2, state.desc2, wg2, base + 2, base + 3)? * 1_000_000.0) as u64;
-        gpu_timestamp_ns += (state.dispatcher3.dispatch_timed(ctx, &state.pipeline3, state.desc3, wg3, base + 4, base + 5)? * 1_000_000.0) as u64;
+        let base: u32 = i * 6;
+        profiler.dispatch_profiled(&mut state.dispatcher1, ctx, &state.pipeline1, state.desc1, wg1, base, base + 1, i * 3)?;
+        gpu_timestamp_ns += (profiler.get_elapsed_ms(ctx, base)? * 1_000_000.0) as u64;
+        total_invocations += profiler.get_invocations(ctx, i * 3)?;
+
+        profiler.dispatch_profiled(&mut state.dispatcher2, ctx, &state.pipeline2, state.desc2, wg2, base + 2, base + 3, i * 3 + 1)?;
+        gpu_timestamp_ns += (profiler.get_elapsed_ms(ctx, base + 2)? * 1_000_000.0) as u64;
+        total_invocations += profiler.get_invocations(ctx, i * 3 + 1)?;
+
+        profiler.dispatch_profiled(&mut state.dispatcher3, ctx, &state.pipeline3, state.desc3, wg3, base + 4, base + 5, i * 3 + 2)?;
+        gpu_timestamp_ns += (profiler.get_elapsed_ms(ctx, base + 4)? * 1_000_000.0) as u64;
+        total_invocations += profiler.get_invocations(ctx, i * 3 + 2)?;
     }
 
     let gpu_dur: std::time::Duration = start.elapsed();
@@ -233,21 +243,39 @@ pub fn run_scan(ctx: &mut GpuContext) -> Result<Value, GpuError> {
 
     destroy_scan(ctx, state);
 
-    let bytes: f64 = (2 * BENCH_ELEMENTS * 4) as f64;
+    let bytes_read: f64 = (BENCH_ELEMENTS * 4) as f64;
+    let bytes_written: f64 = (BENCH_ELEMENTS * 4) as f64;
+    let bytes: f64 = bytes_read + bytes_written;
     let bandwidth_gbps: f64 = bytes / (gpu_ms / 1000.0) / 1e9;
+    let avg_invocations: u64 = total_invocations / ITERATIONS as u64;
 
-    Ok(json!({
+    let gpu_ms_r = (gpu_ms * 100.0).round() / 100.0;
+    let gpu_ts_ms_r = (gpu_timestamp_ms * 100.0).round() / 100.0;
+    let cpu_ms_r = (cpu_ms * 100.0).round() / 100.0;
+    let bw_gbps_r = (bandwidth_gbps * 100.0).round() / 100.0;
+    let speedup_r = (cpu_ms / gpu_ms * 100.0).round() / 100.0;
+
+    let report = BenchmarkReport {
+        name: "scan",
+        gpu_ms: gpu_ms_r,
+        gpu_timestamp_ms: gpu_ts_ms_r,
+        invocations: avg_invocations,
+        bytes_read,
+        bytes_written,
+    };
+
+    Ok((json!({
         "scan": {
             "device": device_name,
             "elements": BENCH_ELEMENTS,
             "workgroup_size": WG_SIZE,
-            "gpu_ms": (gpu_ms * 100.0).round() / 100.0,
-            "gpu_timestamp_ms": (gpu_timestamp_ms * 100.0).round() / 100.0,
-            "cpu_ms": (cpu_ms * 100.0).round() / 100.0,
-            "bandwidth_gbps": (bandwidth_gbps * 100.0).round() / 100.0,
-            "speedup": (cpu_ms / gpu_ms * 100.0).round() / 100.0,
+            "gpu_ms": gpu_ms_r,
+            "gpu_timestamp_ms": gpu_ts_ms_r,
+            "cpu_ms": cpu_ms_r,
+            "bandwidth_gbps": bw_gbps_r,
+            "speedup": speedup_r,
             "correct": true,
         }
-    }))
+    }), report))
 }
 
