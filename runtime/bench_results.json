@@ -1,39 +1,48 @@
 {
   "histogram": {
-    "bandwidth_gbps": 6.37,
+    "bandwidth_gbps": 7.03,
     "buckets": 256,
     "correct": true,
-    "cpu_ms": 12.43,
+    "cpu_ms": 12.11,
     "device": "NVIDIA GeForce RTX 2060 SUPER",
     "elements": 1048576,
-    "gpu_ms": 0.66,
+    "gpu_ms": 0.6,
     "gpu_timestamp_ms": 0.48,
     "range": 1024,
-    "speedup": 18.86,
+    "speedup": 20.29,
     "workgroup_size": 256
   },
   "scan": {
-    "bandwidth_gbps": 6.6,
+    "bandwidth_gbps": 7.35,
     "correct": true,
-    "cpu_ms": 7.88,
+    "cpu_ms": 7.74,
     "device": "NVIDIA GeForce RTX 2060 SUPER",
     "elements": 1048576,
-    "gpu_ms": 1.27,
-    "gpu_timestamp_ms": 0.84,
-    "speedup": 6.2,
+    "gpu_ms": 1.14,
+    "gpu_timestamp_ms": 0.82,
+    "speedup": 6.78,
     "workgroup_size": 256
   },
   "spmv": {
-    "bandwidth_gbps": 11.97,
+    "bandwidth_gbps": 12.77,
     "cols": 262144,
     "correct": true,
-    "cpu_ms": 97.19,
+    "cpu_ms": 114.48,
     "device": "NVIDIA GeForce RTX 2060 SUPER",
-    "gpu_ms": 2.97,
-    "gpu_timestamp_ms": 2.81,
+    "gpu_ms": 2.79,
+    "gpu_timestamp_ms": 2.64,
     "nnz": 4188912,
     "rows": 262144,
-    "speedup": 32.67,
+    "speedup": 41.06,
     "workgroup_size": 256
+  },
+  "system": {
+    "cores": 16,
+    "cpu": "AMD Ryzen 7 7700X 8-Core Processor             ",
+    "gpu": "NVIDIA GeForce RTX 2060 SUPER",
+    "os": "Windows 11 (26200)",
+    "ram_gb": 31.12,
+    "subgroup_size": 32,
+    "vulkan": "1.4.341"
   }
 }

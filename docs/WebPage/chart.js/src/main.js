@@ -93,8 +93,12 @@ const populateTable = (data) => {
 };
 
 const populateSystemInfo = (data) => {
-  const gpu = data.scan?.device || data.histogram?.device || "Unknown GPU";
-  document.getElementById("gpu-name").textContent = gpu;
+  const s = data.system || {};
+
+  document.getElementById("gpu-name").textContent = s.gpu || "Unknown GPU";
+  document.getElementById("cpu-name").textContent = s.cpu || "Unknown CPU";
+  document.getElementById("ram-size").textContent =
+    s.ram_gb != null ? `${s.ram_gb} GB` : "\u2014";
 };
 
 const initTheme = () => {
@@ -114,28 +118,26 @@ const initTheme = () => {
 };
 
 const start = async () => {
-    initTheme();
-    let data;
+  initTheme();
+  let data;
 
-    try {
-        data = await fetchBenchData();
-    } 
-    catch (error) {
-        document.body.innerHTML =
-        `<div style="display:flex;align-items:center;justify-content:center;height:100vh;flex-direction:column;gap:1rem;color:var(--error)">` +
-        `<h2>Failed to load benchmark data</h2>` +
-        `<p>${error.message}</p>` +
-        `<p style="font-size:0.85rem;color:var(--text-muted)">Run <code>cargo test run_all_benchmarks</code> first</p></div>`;
-        return;
-    }
+  try {
+    data = await fetchBenchData();
+  } catch (error) {
+    document.body.innerHTML =
+      `<div style="display:flex;align-items:center;justify-content:center;height:100vh;flex-direction:column;gap:1rem;color:var(--error)">` +
+      `<h2>Failed to load benchmark data</h2>` +
+      `<p>${error.message}</p>` +
+      `<p style="font-size:0.85rem;color:var(--text-muted)">Run <code>cargo test run_all_benchmarks</code> first</p></div>`;
+    return;
+  }
 
-    populateSystemInfo(data);
-    initCharts(data);
-    populateMetrics(data);
-    populateTable(data);
+  populateSystemInfo(data);
+  initCharts(data);
+  populateMetrics(data);
+  populateTable(data);
 };
 
-if(document.readyState === "loading")
-    document.addEventListener("DOMContentLoaded", start);
-else
-    start();
+if (document.readyState === "loading")
+  document.addEventListener("DOMContentLoaded", start);
+else start();

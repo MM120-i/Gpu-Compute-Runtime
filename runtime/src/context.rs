@@ -10,18 +10,21 @@ use crate::gpu::buffer::GpuBuffer;
 use crate::gpu::dispatcher::Dispatcher;
 
 pub struct GpuContext{
-    #[allow(dead_code)] // kept for future device querying
-    pub(crate) entry: ash::Entry,
+    #[allow(dead_code)] 
+    entry: ash::Entry,
+
     instance: ManuallyDrop<ash::Instance>,
     device: ManuallyDrop<ash::Device>,
 
-    #[allow(dead_code)] // kept for future device querying
-    pub(crate) physical_device: vk::PhysicalDevice,
+    #[allow(dead_code)] 
+
+    physical_device: vk::PhysicalDevice,
     pub(crate) physical_device_properties: vk::PhysicalDeviceProperties,
     
     pub(crate) compute_queue: vk::Queue,
-    #[allow(dead_code)] // kept for creating additional queues later
-    pub(crate) queue_family_index: u32,
+
+    #[allow(dead_code)] 
+    queue_family_index: u32,
 
     pub(crate) allocator: ManuallyDrop<Allocator>,
     pub(crate) command_pool: vk::CommandPool,
@@ -72,7 +75,6 @@ impl GpuContext {
             }.map_err(|e: vk::Result| GpuError::Vk("create_instance", e))?
         );
         
-        // If validation layers are available, create the debug messenger now
         let has_validation: bool = !layer_ptrs.is_empty();
         let (debug_utils_loader, debug_messenger) = if has_validation {
             let debug_loader: debug_utils::Instance = debug_utils::Instance::new(&entry, &instance);
@@ -185,7 +187,6 @@ impl GpuContext {
             device.create_query_pool(&query_pool_info, None).map_err(|e: vk::Result| GpuError::Vk("create_query_pool", e))?
         };
 
-        // Reset all slots to valid state
         unsafe {
             device.reset_query_pool(timestamp_query_pool, 0, 1024);
         }
@@ -228,7 +229,6 @@ impl GpuContext {
         families.iter().position(|qf: &vk::QueueFamilyProperties| qf.queue_flags.contains(vk::QueueFlags::COMPUTE)).map(|i: usize| i as u32)
     }
 
-    // Prefer an external gpu (2060 super in my case), fall back to integrated graphics if needed
     fn pick_physical_device(devices: &[vk::PhysicalDevice], instance: &ash::Instance) -> Result<vk::PhysicalDevice, GpuError> {
         for &device in devices {
             let prop: vk::PhysicalDeviceProperties = unsafe {
@@ -275,7 +275,6 @@ impl GpuContext {
         Ok((ext_ptrs, layer_ptrs))
     }
 
-    // Return the GPU name (2060 super in my case)
     pub fn device_name(&self) -> String {
         let name_slice: &[i8; 256] = &self.physical_device_properties.device_name;
         let len: usize = name_slice.iter().position(|&c| c == 0).unwrap_or(name_slice.len());
@@ -283,7 +282,21 @@ impl GpuContext {
         String::from_utf8_lossy(name_bytes).to_string()
     }
 
-    // Block until the GPU finished all pending work
+    pub fn vulkan_version(&self) -> String {
+        let ver: u32 = self.physical_device_properties.api_version;
+
+        format!(
+            "{}.{}.{}",
+            vk::api_version_major(ver),
+            vk::api_version_minor(ver),
+            vk::api_version_patch(ver),
+        )
+    }
+
+    pub fn subgroup_size(&self) -> u32 {
+        self.subgroup_size
+    }
+
     pub fn wait_idle(&self) -> Result<(), GpuError> {
         unsafe {
             self.device.device_wait_idle()
@@ -294,7 +307,6 @@ impl GpuContext {
         &*self.device
     }
 
-    // cleanup helpers
     pub fn create_buffer(&mut self, size: u64, usage: vk::BufferUsageFlags, location: MemoryLocation) -> Result<GpuBuffer, GpuError> {
         let buffer_info: vk::BufferCreateInfo<'_> = vk::BufferCreateInfo {
             size,
@@ -372,7 +384,6 @@ impl Drop for GpuContext {
     }
 }
 
-// When validation layers detect problem, we r gonna call this callback
 unsafe extern "system" fn vulkan_debug_callback(severity: vk::DebugUtilsMessageSeverityFlagsEXT, _type: vk::DebugUtilsMessageTypeFlagsEXT, data: *const vk::DebugUtilsMessengerCallbackDataEXT, _user_data: *mut std::ffi::c_void) -> vk::Bool32 {
     let level: &str = match severity{
         vk::DebugUtilsMessageSeverityFlagsEXT::ERROR => "ERROR",
