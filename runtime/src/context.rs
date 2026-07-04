@@ -10,18 +10,21 @@ use crate::gpu::buffer::GpuBuffer;
 use crate::gpu::dispatcher::Dispatcher;
 
 pub struct GpuContext{
-    #[allow(dead_code)] // kept for future device querying
-    pub(crate) entry: ash::Entry,
+    #[allow(dead_code)]
+    entry: ash::Entry,
+
     instance: ManuallyDrop<ash::Instance>,
     device: ManuallyDrop<ash::Device>,
 
-    #[allow(dead_code)] // kept for future device querying
-    pub(crate) physical_device: vk::PhysicalDevice,
+    #[allow(dead_code)]
+    physical_device: vk::PhysicalDevice,
+
     pub(crate) physical_device_properties: vk::PhysicalDeviceProperties,
     
     pub(crate) compute_queue: vk::Queue,
-    #[allow(dead_code)] // kept for creating additional queues later
-    pub(crate) queue_family_index: u32,
+    
+    #[allow(dead_code)]
+    queue_family_index: u32,
 
     pub(crate) allocator: ManuallyDrop<Allocator>,
     pub(crate) command_pool: vk::CommandPool,

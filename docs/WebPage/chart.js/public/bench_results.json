@@ -1,39 +1,39 @@
 {
   "histogram": {
-    "bandwidth_gbps": 5.97,
+    "bandwidth_gbps": 6.39,
     "buckets": 256,
     "correct": true,
-    "cpu_ms": 12.15,
+    "cpu_ms": 12.32,
     "device": "NVIDIA GeForce RTX 2060 SUPER",
     "elements": 1048576,
-    "gpu_ms": 0.7,
-    "gpu_timestamp_ms": 0.56,
+    "gpu_ms": 0.66,
+    "gpu_timestamp_ms": 0.5,
     "range": 1024,
-    "speedup": 17.27,
+    "speedup": 18.77,
     "workgroup_size": 256
   },
   "scan": {
-    "bandwidth_gbps": 6.43,
+    "bandwidth_gbps": 6.61,
     "correct": true,
-    "cpu_ms": 7.69,
+    "cpu_ms": 7.79,
     "device": "NVIDIA GeForce RTX 2060 SUPER",
     "elements": 1048576,
-    "gpu_ms": 1.3,
+    "gpu_ms": 1.27,
     "gpu_timestamp_ms": 0.87,
-    "speedup": 5.89,
+    "speedup": 6.14,
     "workgroup_size": 256
   },
   "spmv": {
-    "bandwidth_gbps": 11.15,
+    "bandwidth_gbps": 11.13,
     "cols": 262144,
     "correct": true,
-    "cpu_ms": 94.78,
+    "cpu_ms": 140.99,
     "device": "NVIDIA GeForce RTX 2060 SUPER",
-    "gpu_ms": 3.19,
-    "gpu_timestamp_ms": 3.03,
+    "gpu_ms": 3.2,
+    "gpu_timestamp_ms": 3.0,
     "nnz": 4188912,
     "rows": 262144,
-    "speedup": 29.67,
+    "speedup": 44.05,
     "workgroup_size": 256
   }
 }
