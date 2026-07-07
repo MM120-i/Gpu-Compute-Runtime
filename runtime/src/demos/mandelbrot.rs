@@ -31,10 +31,19 @@ pub fn render_gpu(
     cy: f32,
     scale: f32,
 ) -> Result<Vec<u32>, GpuError> {
-    let total: u64 = (width * height) as u64;
+    if width == 0 || height == 0 {
+        return Err(GpuError::Buffer("image dimensions must be non-zero"));
+    }
+
+    let total = u64::from(width)
+        .checked_mul(u64::from(height))
+        .ok_or(GpuError::Buffer("image dimensions overflow"))?;
+    let output_bytes = total
+        .checked_mul(std::mem::size_of::<u32>() as u64)
+        .ok_or(GpuError::Buffer("output buffer size overflow"))?;
 
     let out_buf: GpuBuffer = ctx.create_buffer(
-        total * std::mem::size_of::<u32>() as u64, 
+        output_bytes,
         BufferUsageFlags::STORAGE_BUFFER | BufferUsageFlags::TRANSFER_SRC, 
         MemoryLocation::GpuToCpu,
     )?;
@@ -61,8 +70,8 @@ pub fn render_gpu(
     let desc: DescriptorSet = pipeline.create_descriptor_set(ctx, &[&out_buf, &params_buf])?;
     let mut dispatcher: Dispatcher = Dispatcher::new(ctx)?;
 
-    let wg_x: u32 = (width + WG - 1) / WG;
-    let wg_y: u32 = (height + WG - 1) / WG;
+    let wg_x = width / WG + u32::from(width % WG != 0);
+    let wg_y = height / WG + u32::from(height % WG != 0);
     let wg: WorkgroupCount = WorkgroupCount { x: wg_x, y: wg_y, z: 1 };
 
     dispatcher.dispatch(ctx, &pipeline, desc, wg)?;
@@ -77,8 +86,8 @@ pub fn render_gpu(
     Ok(result)
 }
 
-fn write_ppm(path: &str, pixels: &[u32], width: u32, height: u32){
-    let mut contents: String = format!("P6\n{} {}\n255\n", width, height);
+fn write_ppm(path: &str, pixels: &[u32], width: u32, height: u32) -> Result<(), GpuError> {
+    let mut contents: Vec<u8> = format!("P6\n{} {}\n255\n", width, height).into_bytes();
 
     for &iter in pixels {
         let (r, g, b) = if iter == 0 {
@@ -92,15 +101,14 @@ fn write_ppm(path: &str, pixels: &[u32], width: u32, height: u32){
             (r, g, b)
         };
 
-        contents.push(r as char);
-        contents.push(g as char);
-        contents.push(b as char);
+        contents.extend_from_slice(&[r, g, b]);
     }
 
-    fs::write(path, &contents).expect("write PPM");
+    fs::write(path, contents).map_err(|_| GpuError::Buffer("failed to write PPM"))?;
+    Ok(())
 }
 
-pub fn render_to_fil(
+pub fn render_to_file(
     ctx: &mut GpuContext,
     width: u32,
     height: u32, 
@@ -111,6 +119,6 @@ pub fn render_to_fil(
     path: &str,
 ) -> Result<(), GpuError>{
     let pixels: Vec<u32> = render_gpu(ctx, width, height, max_iters, cx, cy, scale)?;
-    write_ppm(path, &pixels, width, height);
+    write_ppm(path, &pixels, width, height)?;
     Ok(())
 }

@@ -2,7 +2,7 @@ use runtime::context::GpuContext;
 use std::fs;
 
 fn write_ppm(path: &str, pixels: &[u32], width: u32, height: u32) {
-    let mut contents: String = format!("P6\n{} {}\n255\n", width, height);
+    let mut contents: Vec<u8> = format!("P6\n{} {}\n255\n", width, height).into_bytes();
 
     for &iter in pixels {
         let (r, g, b) = if iter == 0 {
@@ -16,9 +16,7 @@ fn write_ppm(path: &str, pixels: &[u32], width: u32, height: u32) {
             (r, g, b)
         };
 
-        contents.push(r as char);
-        contents.push(g as char);
-        contents.push(b as char);
+        contents.extend_from_slice(&[r, g, b]);
     }
 
     fs::write(path, &contents).expect("write PPM");

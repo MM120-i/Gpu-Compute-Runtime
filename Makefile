@@ -1,7 +1,7 @@
 RUNTIME = runtime
 DASHBOARD = docs/WebPage/chart.js
 
-.PHONY: all check test bench run unroll clean dashboard help
+.PHONY: all check test bench run unroll clean dashboard help mandelbrot
 
 all: check
 
