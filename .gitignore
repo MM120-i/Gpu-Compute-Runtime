@@ -135,10 +135,6 @@ results/
 *.csv
 *.log
 
-# Python
-__pycache__/
-.venv/
-
 # VS Code
 .vscode/
 
@@ -146,3 +142,6 @@ __pycache__/
 Thumbs.db
 Desktop.ini
 $RECYCLE.BIN/
+
+# Pic
+*.ppm

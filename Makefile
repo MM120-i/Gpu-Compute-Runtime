@@ -25,7 +25,10 @@ dashboard:
 
 clean:
 	cd $(RUNTIME) && cargo clean
-	-del /f /q $(RUNTIME)\*.spv $(RUNTIME)\*.json>nul
+	-del /f /q $(RUNTIME)\*.spv $(RUNTIME)\*.json $(RUNTIME)\*.ppm>nul
+
+mandelbrot:
+	cd $(RUNTIME) && cargo test mandelbrot_render_full_1080p -- --nocapture
 
 help:
 	@echo Targets:
