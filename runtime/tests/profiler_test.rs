@@ -10,14 +10,7 @@ fn profiled_dispatch_returns_positive_invocations() {
     let mut dispatcher: Dispatcher = Dispatcher::new(&ctx).expect("create Dispatcher");
     let profiler: GpuProfiler = GpuProfiler::new(&ctx).expect("create GpuProfiler");
 
-    let shader: &str = "\
-        #version 450\n\
-        layout(local_size_x=256) in;\n\
-        layout(std430, binding=0) buffer D { uint data[]; };\n\
-        void main() {\n\
-            uint x = gl_GlobalInvocationID.x;\n\
-            data[gl_GlobalInvocationID.x] = x;\n\
-        }";
+    let shader: &str = include_str!("shaders/passthrough.glsl");
 
     let bindings: [BufferBinding; 1] = [BufferBinding { slot: 0 }];
     let pipeline: ComputePipeline = ComputePipeline::from_glsl_no_opt(&ctx, shader, "main", &bindings).expect("create pipeline");
@@ -44,14 +37,7 @@ fn profiled_timestamps_monotonic() {
     let mut dispatcher: Dispatcher = Dispatcher::new(&ctx).expect("create Dispatcher");
     let profiler: GpuProfiler = GpuProfiler::new(&ctx).expect("create GpuProfiler");
 
-    let shader = "\
-        #version 450\n\
-        layout(local_size_x=256) in;\n\
-        layout(std430, binding=0) buffer D { uint data[]; };\n\
-        void main() {\n\
-            for (int i = 0; i < 4096; i++) { gl_GlobalInvocationID.x; }\n\
-            data[gl_GlobalInvocationID.x] = gl_GlobalInvocationID.x;\n\
-        }";
+    let shader = include_str!("shaders/busy_work_loop.glsl");
 
     let bindings: [BufferBinding; 1] = [BufferBinding { slot: 0 }];
     let pipeline: ComputePipeline = ComputePipeline::from_glsl_no_opt(&ctx, shader, "main", &bindings).expect("create pipeline");

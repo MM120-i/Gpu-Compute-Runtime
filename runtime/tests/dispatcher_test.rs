@@ -10,15 +10,7 @@ fn timestamp_queries_work() {
     let mut ctx: GpuContext = GpuContext::new().expect("create GpuContext");
     let mut dispatcher: Dispatcher = Dispatcher::new(&ctx).expect("create Dispatcher");
 
-    let shader: &str = "\
-        #version 450\n\
-        layout(local_size_x=256) in;\n\
-        layout(std430, binding=0) buffer D { uint data[]; };\n\
-        void main() {\n\
-            uint x = gl_GlobalInvocationID.x;\n\
-            for (int i = 0; i < 4096; i++) { x = x * 1103515245u + 12345u; }\n\
-            data[gl_GlobalInvocationID.x] = x;\n\
-        }";
+    let shader: &str = include_str!("shaders/busy_work.glsl");
 
     let bindings: [BufferBinding; 1] = [BufferBinding { slot: 0 }];
     let pipeline: ComputePipeline = ComputePipeline::from_glsl_no_opt(&ctx, shader, "main", &bindings).expect("create pipeline");
