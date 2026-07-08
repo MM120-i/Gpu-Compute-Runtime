@@ -1,23 +1,16 @@
-# GPU Compute Runtime
+# GPU Compute Runtime 💀
 
 A GPU compute runtime built from scratch. Compiles shaders, dispatches them on the GPU, and profiles performance, all from Rust with a C++ compiler frontend.
 
 ## What even is this
 
-So you know how your CPU has a handful of fast cores that run your programs? A GPU
-is like a second processor inside your machine, but instead of a few fast cores,
-it has thousands of simpler ones that all work in parallel. It's not just for
-graphics, you can run any computation on it: physics simulations, sorting
-algorithms, machine learning kernels.
+Your CPU has a handful of really fast cores. Your GPU has thousands of simpler ones, all designed to work at the same time. Most people only use their GPU for games and video rendering and stuff, but it can run any kind of computation like physics simulations, sorting algorithms, fractal rendering, machine learning.
 
-This project gives you a way to write programs that run on that second
-processor, from scratch. You feed it shader code (GLSL), it compiles them through a C++ frontend, and a Rust runtime talks to the Vulkan driver to dispatch them onto the GPU. The project is compatable across NVIDIA, AMD, and Intel GPUs no vendor lock in, no framework overhead.
+This project lets you write programs that runs on your GPU, from scratch. You write the logic in GLSL, a C++ frontend compiles it into SPIR-V, and a Rust runtime talks directly to the Vulkan driver to dispatch your code onto the hardware. No PyTorch, no CUDA, no framework getting in the way. Works on NVIDIA, AMD, and Intel GPUs without picking sides.
 
-It also profiles every dispatch. Instead of timing with a wall clock (which
-includes the CPU overhead of telling the GPU what to do), it uses the GPU's own
-hardware timestamps and invocation counters to report: exactly how long your
-computation took on the silicon, and what percentage of the GPU's peak memory
-bandwidth you're actually using. Results go to a live real time dashboard.
+It also profiles every single dispatch. Instead of measuring time with a stopwatch (which includes the CPU overhead of telling the GPU what to do), it asks the GPU directly: "how long did that actually take you?" using Vulkan's hardware timestamp queries and pipeline statistics. It computes what percentage of your GPU's peak memory bandwidth you're burning through, and pushes the results to a live dashboard that updates every time you run the benchmarks.
+
+As a demo, it renders deep-zoom Mandelbrot fractals, 4096×4096 pixels of seahorse-valley spirals, each pixel computed by a separate GPU thread, blazing through 2000 iterations in about 4 milliseconds. Good luck doing that on a CPU 💀.
 
 ---
 
@@ -28,7 +21,8 @@ bandwidth you're actually using. Results go to a live real time dashboard.
 - **Rust runtime** (`runtime/`): Library crate that talks to Vulkan via `ash`. Device setup, buffer management (host visible, persistent mapped), shader pipeline creation, dispatch, timestamp/pipeline-statistics profiling.
 - **C++ compiler frontend** (`compiler/`): Compiles GLSL to SPIR-V via `shaderc` with a C ABI bridge (`extern "C"`). Includes hand written preprocessor and unroller passes.
 - **Kernels** (`kernels/benchmarks/`): Compute shaders: 3 pass parallel prefix sum (warp shuffle or shared memory fallback), PRSG histogram, tiled/naive sparse matrix vector multiply.
-- **Dashboard** (`docs/WebPage/chart.js/`): Vite + Chart.js app. Reads `bench_results.json` and renders interactive bar charts (CPU vs GPU wall vs GPU timestamp). Auto deployed via GitHub Actions.
+- **Demos** (`kernels/demos/`, `runtime/src/demos/`): GPU-accelerated Mandelbrot set renderer with fp64 deep-zoom support. CLI: `cargo run -- mandelbrot --zoom seahorse --width 4096 --iters 5000`. See [`docs/mandelbrot.md`](docs/mandelbrot.md).
+- **Dashboard** (`docs/WebPage/chart.js/`): Vite + Chart.js app. Reads `bench_results.json` and renders interactive bar charts (CPU vs GPU wall vs GPU timestamp). Auto deployed via GitHub Actions. Demos tab includes the rendered Mandelbrot image with a comparison table.
 
 ---
 
@@ -59,13 +53,14 @@ cargo test  --manifest-path runtime/Cargo.toml --     # benchmarks (writes bench
 
 Make targets:
 
-| Target           | Does                                              |
-| ---------------- | ------------------------------------------------- |
-| `make check`     | `cargo check`                                     |
-| `make test`      | `cargo check` + `cargo test`                      |
-| `make bench`     | run benchmarks with `--nocapture`                 |
-| `make dashboard` | `npm run dev` (Chart.js live dashboard)           |
-| `make clean`     | `cargo clean` + delete generated .spv/.json files |
+| Target            | Does                                              |
+| ----------------- | ------------------------------------------------- |
+| `make check`      | `cargo check`                                     |
+| `make test`       | `cargo check` + `cargo test`                      |
+| `make bench`      | run benchmarks with `--nocapture`                 |
+| `make dashboard`  | `npm run dev` (Chart.js live dashboard)           |
+| `make mandelbrot` | render the Mandelbrot set (1920×1080, 1000 iters) |
+| `make clean`      | `cargo clean` + delete generated .spv/.json files |
 
 ---
 
@@ -73,13 +68,14 @@ Make targets:
 
 All benchmarks run on an **NVIDIA GeForce RTX 2060 SUPER** (peak memory bandwidth: 448 GB/s, subgroup size: 32). Timed loops average 10 iterations. **GPU wall** is wall clock time per iteration. **GPU pure** is the Vulkan timestamp delta (TOP_OF_PIPE → COMPUTE_SHADER), excluding dispatch overhead. **Invocations** counts compute shader thread invocations from pipeline statistics queries.
 
-| Benchmark              | GPU wall (ms) | GPU pure (ms) | Invocations | Speedup vs CPU |
-| ---------------------- | ------------- | ------------- | ----------- | -------------- |
-| Scan (1M u32)          | 1.30          | 0.87          | 2,101,248   | 5.89×          |
-| Histogram (1M samples) | 0.70          | 0.56          | 1,048,576   | 17.27×         |
-| SpMV (262K², 4.2M nnz) | 3.19          | 3.03          | 8,388,608   | 29.67×         |
+| Benchmark                    | GPU wall (ms) | GPU pure (ms) | Invocations | Speedup vs CPU |
+| ---------------------------- | ------------- | ------------- | ----------- | -------------- |
+| Scan (1M u32)                | 1.30          | 0.87          | 2,101,248   | 5.89×          |
+| Histogram (1M samples)       | 0.70          | 0.56          | 1,048,576   | 17.27×         |
+| SpMV (262K², 4.2M nnz)       | 3.19          | 3.03          | 8,388,608   | 29.67×         |
+| Mandelbrot (1024², 200 iter) | 0.54          | 0.38          | 1,048,576   | 262.67×        |
 
-See [`docs/Benchmarks/`](docs/Benchmarks/) for per-benchmark descriptions: algorithm, shader architecture, historical results from v1 (pipeline recreation every call) to v2 (pre-cached + profiled), and links to academic references.
+See [`docs/Benchmarks/`](docs/Benchmarks/) for per-benchmark descriptions: algorithm, shader architecture, historical results from v1 (pipeline recreation every call) to v2 (pre-cached + profiled), and links to academic references. The Mandelbrot demo is documented separately at [`docs/mandelbrot.md`](docs/mandelbrot.md).
 
 ---
 
