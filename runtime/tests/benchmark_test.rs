@@ -83,6 +83,25 @@ fn run_all_benchmarks() {
         reports.push(report);
     }
 
+    // mandelbrot
+    let mut demos: serde_json::Map<String, serde_json::Value> = serde_json::Map::new();
+    {
+        let mut ctx: runtime::context::GpuContext = runtime::context::GpuContext::new().expect("create GpuContext");
+        let profiler: GpuProfiler = GpuProfiler::new(&ctx).expect("create GpuProfiler");
+        let (result, report) = runtime::demos::mandelbrot::bench_mandelbrot(&mut ctx, &profiler).expect("mandelbrot benchmark failed");
+        let mb = &result["mandelbrot"];
+
+        assert!(mb["correct"].as_bool().unwrap(), "mandelbrot correctness check failed");
+
+        println!("{}", serde_json::to_string_pretty(&result).unwrap());
+        let gpu = mb["gpu_ms"].as_f64().unwrap_or(0.0);
+        let cpu = mb["cpu_ms"].as_f64().unwrap_or(0.0);
+        let sp = mb["speedup"].as_f64().unwrap_or(0.0);
+        eprintln!("[bench] mandelbrot: {:.2} ms GPU, {:.2} ms CPU, {:.2}x speedup", gpu, cpu, sp);
+        demos.insert("mandelbrot".into(), result["mandelbrot"].clone());
+        reports.push(report);
+    }
+
     {
         let ctx: runtime::context::GpuContext = runtime::context::GpuContext::new().expect("create GpuContext");
         let display: GpuProfiler = GpuProfiler::new(&ctx).expect("create display GpuProfiler");
@@ -96,6 +115,7 @@ fn run_all_benchmarks() {
 
     let mut ordered: serde_json::Map<String, serde_json::Value> = serde_json::Map::new();
     ordered.insert("system".into(), sys);
+    ordered.insert("demos".into(), serde_json::Value::Object(demos));
 
     for (k, v) in combined {
         ordered.insert(k, v);
