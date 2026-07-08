@@ -6,9 +6,9 @@
 
 **Shader variants**:
 
-- **Naive** (`spmv.comp`) — 1 thread per CSR row. Each thread iterates over its row's non-zero range (`row_ptrs[row]..row_ptrs[row+1]`), loads the column index and value, fetches `x[col]`, multiplies, and accumulates. Simple, but poor memory coalescing when non-zeros in a warp map to scattered columns.
+- **Naive** (`spmv.glsl`) — 1 thread per CSR row. Each thread iterates over its row's non-zero range (`row_ptrs[row]..row_ptrs[row+1]`), loads the column index and value, fetches `x[col]`, multiplies, and accumulates. Simple, but poor memory coalescing when non-zeros in a warp map to scattered columns.
 
-- **Tiled / warp-per-row** (`spmv_tiled.comp`) — 1 subgroup (warp, 32 threads on RTX 2060 SUPER) per row. Threads within the warp cooperatively load non-zeros and the corresponding x values, then `subgroupAdd` reduces the partial products. Workgroup count adapts: `ceil(rows / (WG_SIZE/subgroup_size))`. Activated automatically when `subgroup_arithmetic` is detected.
+- **Tiled / warp-per-row** (`spmv_tiled.glsl`) — 1 subgroup (warp, 32 threads on RTX 2060 SUPER) per row. Threads within the warp cooperatively load non-zeros and the corresponding x values, then `subgroupAdd` reduces the partial products. Workgroup count adapts: `ceil(rows / (WG_SIZE/subgroup_size))`. Activated automatically when `subgroup_arithmetic` is detected.
 
 **Results** (NVIDIA GeForce RTX 2060 SUPER):
 

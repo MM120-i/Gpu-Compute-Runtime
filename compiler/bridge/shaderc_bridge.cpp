@@ -20,7 +20,7 @@ extern "C" {
         options.SetTargetSpirv(shaderc_spirv_version_1_6);
         options.SetOptimizationLevel(shaderc_optimization_level_performance);
 
-        auto result = compiler.CompileGlslToSpv(source, std::strlen(source), shaderc_glsl_compute_shader, "shader.comp", options);
+        auto result = compiler.CompileGlslToSpv(source, std::strlen(source), shaderc_glsl_compute_shader, "shader.glsl", options);
         auto status = result.GetCompilationStatus();
 
         if(status != shaderc_compilation_status_success)
@@ -49,7 +49,7 @@ extern "C" {
         options.SetTargetSpirv(shaderc_spirv_version_1_6);
         options.SetOptimizationLevel(shaderc_optimization_level_performance);
 
-        auto result = compiler.CompileGlslToSpv(source, std::strlen(source), shaderc_glsl_compute_shader, "shader.comp", options);
+        auto result = compiler.CompileGlslToSpv(source, std::strlen(source), shaderc_glsl_compute_shader, "shader.glsl", options);
         auto status = result.GetCompilationStatus();
 
         if(status != shaderc_compilation_status_success){

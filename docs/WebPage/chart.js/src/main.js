@@ -92,6 +92,26 @@ const populateTable = (data) => {
     .join("");
 };
 
+const populateMandelbrotTable = (data) => {
+  const d = data.demos?.mandelbrot;
+
+  if (!d) {
+    return;
+  }
+
+  const tbody = document.querySelector("#mandelbrot-table tbody");
+  tbody.innerHTML = `<tr>
+    <td>${n(d.width)}</td>
+    <td>${n(d.height)}</td>
+    <td>${n(d.max_iters)}</td>
+    <td>${d.gpu_ms.toFixed(2)}</td>
+    <td>${d.gpu_timestamp_ms.toFixed(2)}</td>
+    <td>${d.cpu_ms.toFixed(2)}</td>
+    <td>${n(d.invocations)}</td>
+    <td>${spd(d.speedup)}</td>
+  </tr>`;
+};
+
 const populateSystemInfo = (data) => {
   const s = data.system || {};
 
@@ -117,8 +137,24 @@ const initTheme = () => {
   });
 };
 
+const initTabs = () => {
+  const tabs = document.querySelectorAll("#main-tabs .tab");
+  const panels = document.querySelectorAll(".tab-panel");
+
+  tabs.forEach((tab) => {
+    tab.addEventListener("click", () => {
+      const name = tab.dataset.tab;
+      tabs.forEach((t) => t.classList.remove("active"));
+      tab.classList.add("active");
+      panels.forEach((p) => p.classList.remove("active"));
+      document.getElementById(`panel-${name}`).classList.add("active");
+    });
+  });
+};
+
 const start = async () => {
   initTheme();
+  initTabs();
   let data;
 
   try {
@@ -136,8 +172,11 @@ const start = async () => {
   initCharts(data);
   populateMetrics(data);
   populateTable(data);
+  populateMandelbrotTable(data);
 };
 
-if (document.readyState === "loading")
+if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", start);
-else start();
+} else {
+  start();
+}

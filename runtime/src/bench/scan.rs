@@ -14,11 +14,11 @@ const WG_SIZE: u32 = 256;
 const BENCH_ELEMENTS: usize = 1_048_576;   
 const ITERATIONS: u32 = 10;
 
-const PASS1_GLSL: &str = include_str!("../../../kernels/benchmarks/scan_pass1.comp");
-const PASS2_GLSL: &str = include_str!("../../../kernels/benchmarks/scan_pass2.comp");
-const PASS3_GLSL: &str = include_str!("../../../kernels/benchmarks/scan_pass3.comp");
-const PASS1_WARP_GLSL: &str = include_str!("../../../kernels/benchmarks/scan_pass1_warp.comp");
-const PASS2_WARP_GLSL: &str = include_str!("../../../kernels/benchmarks/scan_pass2_warp.comp");
+const PASS1_GLSL: &str = include_str!("../../../kernels/benchmarks/scan_pass1.glsl");
+const PASS2_GLSL: &str = include_str!("../../../kernels/benchmarks/scan_pass2.glsl");
+const PASS3_GLSL: &str = include_str!("../../../kernels/benchmarks/scan_pass3.glsl");
+const PASS1_WARP_GLSL: &str = include_str!("../../../kernels/benchmarks/scan_pass1_warp.glsl");
+const PASS2_WARP_GLSL: &str = include_str!("../../../kernels/benchmarks/scan_pass2_warp.glsl");
 
 pub struct ScanState {
     pipeline1: ComputePipeline,

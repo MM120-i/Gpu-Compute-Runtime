@@ -1,7 +1,7 @@
 RUNTIME = runtime
 DASHBOARD = docs/WebPage/chart.js
 
-.PHONY: all check test bench run unroll clean dashboard help
+.PHONY: all check test bench run unroll clean dashboard help mandelbrot
 
 all: check
 
@@ -15,24 +15,28 @@ bench:
 	cd $(RUNTIME) && cargo test --test benchmark_test -- --nocapture
 
 run:
-	cd $(RUNTIME) && cargo run -- $(ARGS)
+	cd $(RUNTIME) && cargo run -- compile $(ARGS)
 
 unroll:
-	cd $(RUNTIME) && cargo run -- ../kernels/unroll_test.comp -o unroll_test.spv $(ARGS)
+	cd $(RUNTIME) && cargo run -- compile ../kernels/unroll_test.glsl -o unroll_test.spv $(ARGS)
 
 dashboard:
 	cd $(DASHBOARD) && npm run dev
 
 clean:
 	cd $(RUNTIME) && cargo clean
-	-del /f /q $(RUNTIME)\*.spv $(RUNTIME)\*.json>nul
+	-del /f /q $(RUNTIME)\*.spv $(RUNTIME)\*.json $(RUNTIME)\*.ppm>nul
+
+mandelbrot:
+	cd $(RUNTIME) && cargo run -- mandelbrot --zoom full --width 1920 --height 1080 --iters 1000 --output mandelbrot.ppm
 
 help:
 	@echo Targets:
 	@echo   make check         cargo check
 	@echo   make test          cargo check + cargo test
 	@echo   make bench         run scan benchmark
-	@echo   make run ARGS=...  cargo run --
+	@echo   make run ARGS=...  cargo run -- compile
 	@echo   make unroll        run unroll test
 	@echo   make dashboard     npm run dev (Chart.js dashboard)
+	@echo   make mandelbrot    render Mandelbrot 1080p
 	@echo   make clean         cargo clean + delete .spv files

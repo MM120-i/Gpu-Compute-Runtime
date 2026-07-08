@@ -20,8 +20,8 @@ const NNZ_PER_ROW_MIN: usize = 8;
 const NNZ_PER_ROW_MAX: usize = 24;
 const ITERATIONS: u32 = 10;
 
-const SPMV_GLSL: &str = include_str!("../../../kernels/benchmarks/spmv.comp");
-const SPMV_TILED_GLSL: &str = include_str!("../../../kernels/benchmarks/spmv_tiled.comp");
+const SPMV_GLSL: &str = include_str!("../../../kernels/benchmarks/spmv.glsl");
+const SPMV_TILED_GLSL: &str = include_str!("../../../kernels/benchmarks/spmv_tiled.glsl");
 
 #[allow(dead_code)]
 struct CsrMatrix {
