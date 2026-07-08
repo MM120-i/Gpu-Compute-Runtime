@@ -65,7 +65,7 @@ Output: `mandelbrot.ppm` 1920×1080 binary PPM. Open with any image viewer (Wind
 
 ### Full Set Render (1920×1080, 1000 iterations)
 
-![Mandelbrot Full Set](../images/mandelbrot.jpg)
+![Mandelbrot Full Set](/docs/WebPage/chart.js/public/mandelbrot.jpg)
 
 ### Performance
 
