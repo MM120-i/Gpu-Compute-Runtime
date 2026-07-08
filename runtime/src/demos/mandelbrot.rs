@@ -9,7 +9,7 @@ use crate::gpu::pipeline::{BufferBinding, ComputePipeline};
 use crate::gpu::dispatcher::{Dispatcher, WorkgroupCount};
 
 const WG: u32 = 16;
-const SHADER: &str = include_str!("../../../kernels/demos/mandelbrot.comp");
+const SHADER: &str = include_str!("../../../kernels/demos/mandelbrot.glsl");
 
 #[repr(C)]
 #[derive(Clone, Copy)]
@@ -35,10 +35,11 @@ pub fn render_gpu(
         return Err(GpuError::Buffer("image dimensions must be non-zero"));
     }
 
-    let total = u64::from(width)
+    let total: u64 = u64::from(width)
         .checked_mul(u64::from(height))
         .ok_or(GpuError::Buffer("image dimensions overflow"))?;
-    let output_bytes = total
+
+    let output_bytes: u64 = total
         .checked_mul(std::mem::size_of::<u32>() as u64)
         .ok_or(GpuError::Buffer("output buffer size overflow"))?;
 
@@ -70,8 +71,8 @@ pub fn render_gpu(
     let desc: DescriptorSet = pipeline.create_descriptor_set(ctx, &[&out_buf, &params_buf])?;
     let mut dispatcher: Dispatcher = Dispatcher::new(ctx)?;
 
-    let wg_x = width / WG + u32::from(width % WG != 0);
-    let wg_y = height / WG + u32::from(height % WG != 0);
+    let wg_x: u32 = width / WG + u32::from(width % WG != 0);
+    let wg_y: u32 = height / WG + u32::from(height % WG != 0);
     let wg: WorkgroupCount = WorkgroupCount { x: wg_x, y: wg_y, z: 1 };
 
     dispatcher.dispatch(ctx, &pipeline, desc, wg)?;

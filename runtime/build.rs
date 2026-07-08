@@ -29,7 +29,8 @@ fn main() {
     let spv_path: PathBuf = out_dir.join("double.spv");
     let status: std::process::ExitStatus = std::process::Command::new("glslc")
         .args(&[
-            "../kernels/double.comp",
+            "-fshader-stage=compute",
+            "../kernels/double.glsl",
             "-o",
             &spv_path.to_string_lossy(),
         ])
@@ -39,7 +40,7 @@ fn main() {
     assert!(status.success(), "glslc compilation failed");
     
     println!("cargo:rustc-env=DOUBLE_SPV={}", spv_path.display());
-    println!("cargo:rerun-if-changed=../kernels/double.comp");
+    println!("cargo:rerun-if-changed=../kernels/double.glsl");
     println!("cargo:rerun-if-changed=../compiler/bridge/shaderc_bridge.cpp");
     println!("cargo:rerun-if-changed=../compiler/preprocessor/preprocessor.cpp");
     println!("cargo:rerun-if-changed=../compiler/preprocessor/preprocessor.h");

@@ -18,7 +18,7 @@ run:
 	cd $(RUNTIME) && cargo run -- $(ARGS)
 
 unroll:
-	cd $(RUNTIME) && cargo run -- ../kernels/unroll_test.comp -o unroll_test.spv $(ARGS)
+	cd $(RUNTIME) && cargo run -- ../kernels/unroll_test.glsl -o unroll_test.spv $(ARGS)
 
 dashboard:
 	cd $(DASHBOARD) && npm run dev
@@ -38,4 +38,5 @@ help:
 	@echo   make run ARGS=...  cargo run --
 	@echo   make unroll        run unroll test
 	@echo   make dashboard     npm run dev (Chart.js dashboard)
+	@echo   make mandelbrot    render Mandelbrot 1080p
 	@echo   make clean         cargo clean + delete .spv files

@@ -10,8 +10,8 @@
 
 **Shader variants**:
 
-- **Warp-shuffle** (`scan_pass1_warp.comp`, `scan_pass2_warp.comp`): Uses `subgroupInclusiveAdd()` instead of shared-memory stride trees. Two passes instead of three (the carry add pass is unchanged). Activated automatically when `subgroup_arithmetic` is detected.
-- **Shared-memory** (`scan_pass1.comp`, `scan_pass2.comp`): Original 3 pass implementation with explicit shared memory stride tree and barriers. Fallback for GPUs without subgroup arithmetic.
+- **Warp-shuffle** (`scan_pass1_warp.glsl`, `scan_pass2_warp.glsl`): Uses `subgroupInclusiveAdd()` instead of shared-memory stride trees. Two passes instead of three (the carry add pass is unchanged). Activated automatically when `subgroup_arithmetic` is detected.
+- **Shared-memory** (`scan_pass1.glsl`, `scan_pass2.glsl`): Original 3 pass implementation with explicit shared memory stride tree and barriers. Fallback for GPUs without subgroup arithmetic.
 
 **Results** (NVIDIA GeForce RTX 2060 SUPER):
 

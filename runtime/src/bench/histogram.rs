@@ -19,7 +19,7 @@ const BENCH_ELEMENTS: usize = 1_048_576;
 const ITERATIONS: u32 = 10;
 const RANGE: u32 = 1024;
 
-const HISTOGRAM_GLSL: &str = include_str!("../../../kernels/benchmarks/histogram.comp");
+const HISTOGRAM_GLSL: &str = include_str!("../../../kernels/benchmarks/histogram.glsl");
 
 pub struct HistogramState {
     pipeline: ComputePipeline,
