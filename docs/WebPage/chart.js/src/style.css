@@ -175,6 +175,44 @@ main {
   color: var(--text);
 }
 
+.tabs {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+}
+
+.tab {
+  padding: 0.7rem 2rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.tab:hover {
+  color: var(--text);
+  border-color: var(--text-muted);
+}
+
+.tab.active {
+  color: #fff;
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.tab-panel {
+  display: none;
+}
+
+.tab-panel.active {
+  display: contents;
+}
+
 .cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
@@ -291,6 +329,47 @@ main {
   grid-column: 1 / -1;
 }
 
+.mandelbrot-card {
+  grid-column: 1 / -1;
+  margin-bottom: 1.5rem;
+}
+
+.mandelbrot-preview {
+  text-align: center;
+  margin-bottom: 0.75rem;
+}
+
+.mandelbrot-img {
+  width: 100%;
+  max-width: 960px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  display: block;
+  margin: 0 auto;
+}
+
+.mandelbrot-caption {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  text-align: center;
+  line-height: 1.5;
+}
+
+.mandelbrot-caption a {
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.mandelbrot-caption a:hover {
+  text-decoration: underline;
+}
+
+.tag-mandelbrot {
+  background: rgba(from #a78bfa r g b / 0.15);
+  color: #a78bfa;
+}
+
 .table-wrap {
   overflow-x: auto;
 }
@@ -365,7 +444,7 @@ footer code {
   .card {
     padding: 1rem;
   }
-  /* ───── System Info Card ───── */
+
   .system-card {
     margin-bottom: 2rem;
   }

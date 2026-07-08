@@ -17,7 +17,6 @@
     <header>
       <div class="header-left">
         <h1>GPU Compute Runtime</h1>
-        <span class="badge">v0.1.0</span>
       </div>
       <div class="header-right">
         <button
@@ -88,63 +87,95 @@
         </div>
       </section>
 
-      <div class="cards" id="benchmark-cards">
-        <section class="card" data-bench="scan">
-          <div class="card-header">
-            <h2>Parallel Prefix Sum</h2>
-            <span class="tag tag-scan">Scan</span>
-          </div>
-          <div class="chart-wrap">
-            <canvas id="scan-chart"></canvas>
-          </div>
-          <div class="metrics" id="scan-metrics"></div>
-        </section>
+      <nav class="tabs" id="main-tabs">
+        <button class="tab active" data-tab="benchmarks">Benchmarks</button>
+        <button class="tab" data-tab="demos">Demos</button>
+      </nav>
 
-        <section class="card" data-bench="histogram">
-          <div class="card-header">
-            <h2>Histogram</h2>
-            <span class="tag tag-histogram">Histogram</span>
-          </div>
-          <div class="chart-wrap">
-            <canvas id="histogram-chart"></canvas>
-          </div>
-          <div class="metrics" id="histogram-metrics"></div>
-        </section>
+      <div class="tab-panel active" id="panel-benchmarks">
+        <div class="cards" id="benchmark-cards">
+          <section class="card" data-bench="scan">
+            <div class="card-header">
+              <h2>Parallel Prefix Sum</h2>
+              <span class="tag tag-scan">Scan</span>
+            </div>
+            <div class="chart-wrap">
+              <canvas id="scan-chart"></canvas>
+            </div>
+            <div class="metrics" id="scan-metrics"></div>
+          </section>
 
-        <section class="card" data-bench="spmv">
+          <section class="card" data-bench="histogram">
+            <div class="card-header">
+              <h2>Histogram</h2>
+              <span class="tag tag-histogram">Histogram</span>
+            </div>
+            <div class="chart-wrap">
+              <canvas id="histogram-chart"></canvas>
+            </div>
+            <div class="metrics" id="histogram-metrics"></div>
+          </section>
+
+          <section class="card" data-bench="spmv">
+            <div class="card-header">
+              <h2>Sparse Matrix Vector Multiply</h2>
+              <span class="tag tag-spmv">SpMV</span>
+            </div>
+            <div class="chart-wrap">
+              <canvas id="spmv-chart"></canvas>
+            </div>
+            <div class="metrics" id="spmv-metrics"></div>
+          </section>
+        </div>
+
+        <section class="card summary-card">
           <div class="card-header">
-            <h2>Sparse Matrix Vector Multiply</h2>
-            <span class="tag tag-spmv">SpMV</span>
+            <h2>Summary Comparison</h2>
           </div>
-          <div class="chart-wrap">
-            <canvas id="spmv-chart"></canvas>
+          <div class="table-wrap">
+            <table id="summary-table">
+              <thead>
+                <tr>
+                  <th>Benchmark</th>
+                  <th>Elements</th>
+                  <th>CPU (ms)</th>
+                  <th>GPU (ms)</th>
+                  <th>GPU Timestamp (ms)</th>
+                  <th>Speedup</th>
+                  <th>Bandwidth (GB/s)</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
           </div>
-          <div class="metrics" id="spmv-metrics"></div>
         </section>
       </div>
 
-      <section class="card summary-card">
-        <div class="card-header">
-          <h2>Summary Comparison</h2>
-        </div>
-        <div class="table-wrap">
-          <table id="summary-table">
-            <thead>
-              <tr>
-                <th>Benchmark</th>
-                <th>Elements</th>
-                <th>CPU (ms)</th>
-                <th>GPU (ms)</th>
-                <th>GPU Timestamp (ms)</th>
-                <th>Speedup</th>
-                <th>Bandwidth (GB/s)</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
-      </section>
+      <div class="tab-panel" id="panel-demos">
+        <section class="card mandelbrot-card">
+          <div class="card-header">
+            <h2>Mandelbrot Set Renderer</h2>
+            <span class="tag tag-mandelbrot">Demo</span>
+          </div>
+          <div class="mandelbrot-preview">
+            <img
+              src="public/mandelbrot.jpg"
+              alt="Mandelbrot Set rendered on GPU at 1920×1080, 1000 iterations"
+              class="mandelbrot-img"
+            />
+          </div>
+          <p class="mandelbrot-caption">
+            Rendered on GPU in ~10ms at 1920×1080 using a Vulkan compute shader.
+            Each pixel is computed by one GPU thread running the escape time
+            algorithm.
+            <a
+              href="https://github.com/MM120-i/Gpu-Compute-Runtime/blob/main/docs/mandelbrot.md"
+              >Read more →</a
+            >
+          </p>
+        </section>
+      </div>
     </main>
 
     <footer>
