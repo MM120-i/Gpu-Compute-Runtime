@@ -20,9 +20,10 @@ struct MandelbrotParams {
     width: u32,
     height: u32,
     max_iters: u32,
-    cx: f32,
-    cy: f32,
-    scale: f32,
+    _pad: u32,
+    cx: f64,
+    cy: f64,
+    scale: f64,
 }
 
 pub fn render_gpu(
@@ -56,9 +57,10 @@ pub fn render_gpu(
         width,
         height,
         max_iters,
-        cx,
-        cy,
-        scale,
+        _pad: 0,
+        cx: cx as f64,
+        cy: cy as f64,
+        scale: scale as f64,
     };
 
     let params_buf: GpuBuffer = ctx.create_buffer(
@@ -162,7 +164,7 @@ fn init_bench_state(
         MemoryLocation::CpuToGpu,
     )?;
 
-    let params: MandelbrotParams = MandelbrotParams { width, height, max_iters, cx, cy, scale };
+    let params: MandelbrotParams = MandelbrotParams { width, height, max_iters, _pad: 0, cx: cx as f64, cy: cy as f64, scale: scale as f64 };
     params_buf.upload(&[params])?;
 
     let bindings: [BufferBinding; 2] = [BufferBinding { slot: 0 }, BufferBinding { slot: 1 }];
@@ -280,15 +282,17 @@ pub fn bench_mandelbrot(
     }), report))
 }
 
-fn write_ppm(path: &str, pixels: &[u32], width: u32, height: u32) -> Result<(), GpuError> {
+fn write_ppm(path: &str, pixels: &[u32], width: u32, height: u32, max_iters: u32) -> Result<(), GpuError> {
     let mut contents: Vec<u8> = format!("P6\n{} {}\n255\n", width, height).into_bytes();
+
+    let norm: f32 = max_iters as f32;
 
     for &iter in pixels {
         let (r, g, b) = if iter == 0 {
             (0u8, 0u8, 0u8)
         }
         else{
-            let t: f32 = iter as f32 / 200.0;
+            let t: f32 = iter as f32 / norm;
             let r: u8 = (t.min(1.0) * 255.0) as u8;
             let g: u8 = ((t * 0.6).min(1.0) * 255.0) as u8;
             let b: u8 = ((t * 0.4).min(1.0) * 255.0) as u8;
@@ -313,6 +317,6 @@ pub fn render_to_file(
     path: &str,
 ) -> Result<(), GpuError>{
     let pixels: Vec<u32> = render_gpu(ctx, width, height, max_iters, cx, cy, scale)?;
-    write_ppm(path, &pixels, width, height)?;
+    write_ppm(path, &pixels, width, height, max_iters)?;
     Ok(())
 }

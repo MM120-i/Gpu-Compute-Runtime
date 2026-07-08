@@ -1,15 +1,16 @@
 use runtime::context::GpuContext;
 use std::fs;
 
-fn write_ppm(path: &str, pixels: &[u32], width: u32, height: u32) {
+fn write_ppm(path: &str, pixels: &[u32], width: u32, height: u32, max_iters: u32) {
     let mut contents: Vec<u8> = format!("P6\n{} {}\n255\n", width, height).into_bytes();
+    let norm = max_iters as f32;
 
     for &iter in pixels {
         let (r, g, b) = if iter == 0 {
             (0u8, 0u8, 0u8)
         } 
         else {
-            let t: f32 = iter as f32 / 200.0;
+            let t: f32 = iter as f32 / norm;
             let r: u8 = (t.min(1.0) * 255.0) as u8;
             let g: u8 = ((t * 0.6).min(1.0) * 255.0) as u8;
             let b: u8 = ((t * 0.4).min(1.0) * 255.0) as u8;
@@ -69,6 +70,6 @@ fn mandelbrot_render_full_1080p() {
 
     let path: &str = "mandelbrot.ppm";
     
-    write_ppm(path, &pixels, width, height);
+    write_ppm(path, &pixels, width, height, max_iters);
     eprintln!("saved to {}", path);
 }
